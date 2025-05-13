@@ -107,28 +107,12 @@ def game():
                     debug_mode = False
                 else:
                     debug_mode = True
-                    debug_lines = [
-                        f"FPS: {clock.get_fps()}",
-                        f"Posição do Personagem: ({char_x}, {char_y})",
-                        f"Movimento do Personagem: ({move_x}, {move_y})",
-                        f"Posição do Foguete: ({rocket_x}, {rocket_y})",
-                        f"Movimento do Foguete: {move_rocket}",
-                        f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}"
-                    ]
-                    while True:
-                        for i, line in enumerate(debug_lines):
-                            text = font_dead.render(line, True, (255, 255, 255))
-                            screen.blit(text, (10, 10 + i * 20))
-                        for evento in pygame.event.get():
-                            if evento.type == pygame.QUIT:
-                                quit()
-                            if evento.type == pygame.KEYDOWN:
-                                if evento.key == pygame.K_F3:
-                                    debug_mode = False
-                                    pygame.mixer.music.play(-1)
-                                    break
-                        if debug_mode == False:
-                                break
+                    print("Debug Mode Ativado")
+                    if evento.type == pygame.KEYUP:
+                        if evento.key == pygame.K_F3:
+                            debug_mode = False
+                            pygame.mixer.music.play(-1)
+                            break
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
                 pause = True
                 pygame.mixer.music.stop()
@@ -230,6 +214,19 @@ def game():
             #print("Ainda Vivo")
             
         screen.blit(spr_iron, (char_x, char_y) )
+
+        if debug_mode:
+            debug_lines = [
+                f"FPS: {clock.get_fps()}",
+                f"Posição do Personagem: ({char_x}, {char_y})",
+                f"Movimento do Personagem: ({move_x}, {move_y})",
+                f"Posição do Foguete: ({rocket_x}, {rocket_y})",
+                f"Movimento do Foguete: {move_rocket}",
+                f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}"
+            ]
+            for i, line in enumerate(debug_lines):
+                text = font_debug.render(line, True, (black))
+                screen.blit(text, (10, 10 + i * 20))
 
         pygame.display.update()
         clock.tick(60)

@@ -91,10 +91,10 @@ def game():
     move_rocket = 1
     pygame.mixer.Sound.play(snd_rocket)
     pygame.mixer.music.play(-1)
-    char_width = 250
-    char_height =    127
-    rocket_width  = 50
-    rocket_height  = 250
+    char_width = spr_iron.get_width()
+    char_height = spr_iron.get_height()
+    rocket_width  = spr_rocket.get_width()
+    rocket_height  = spr_rocket.get_height()
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -103,27 +103,26 @@ def game():
         keys = pygame.key.get_pressed()
         move_x = keys[pygame.K_d] - keys[pygame.K_a]
         move_y = keys[pygame.K_s] - keys[pygame.K_w]
+        
+        if char_x < 0:
+            if move_x < 0:
+                move_x = 0
+        if char_x > screen.get_width() - char_width:
+            if move_x > 0:
+                move_x = 0
+        if char_y < 0:
+            if move_y < 0:
+                move_y = 0
 
-        char_x += move_x * 15       
-        char_y += move_y * 15      
-        
-        if char_x < 0 :
-            char_x = 15
-        elif char_x >550:
-            char_x = 540
-            
-        if char_y < 0 :
-            char_y = 15
-        elif char_y > 473:
-            char_y = 463
-        
+        char_x += move_x * 20     
+        char_y += move_y * 20  
             
         screen.fill(white)
         screen.blit(spr_far, (0,0) )
 
         x_far = x_far - 0.2
-        x_middle = x_middle - 0.5
-        x_near = x_near - 1.0
+        x_middle = x_middle - 0.7
+        x_near = x_near - 2
 
         if x_far <= -800: x_far = 0
         if x_middle <= -800: x_middle = 0
@@ -161,7 +160,6 @@ def game():
 
         pygame.display.update()
         clock.tick(60)
-
 
 def start():
     startB_width = 150
@@ -211,7 +209,6 @@ def start():
         
         pygame.display.update()
         clock.tick(60)
-
 
 def dead():
     pygame.mixer.music.stop()
@@ -284,6 +281,5 @@ def dead():
 
         pygame.display.update()
         clock.tick(60)
-
 
 start()

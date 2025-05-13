@@ -77,12 +77,34 @@ def get_name():
     # Inicia o loop da interface gráfica
     root.mainloop()
 
-def game():
+def backGround(x_far, x_middle, x_near):
 
+    screen.fill(white)
+    screen.blit(spr_far, (0,0) )
+
+    x_far = x_far - 0.2
+    x_middle = x_middle - 0.7
+    x_near = x_near - 2
+
+    if x_far <= -800: x_far = 0
+    if x_middle <= -800: x_middle = 0
+    if x_near <= -800: x_near = 0
+
+    screen.blit(spr_far, (x_far, 0))
+    screen.blit(spr_far, (x_far + 800, 0))
+
+    screen.blit(spr_middle, (x_middle, 0))
+    screen.blit(spr_middle, (x_middle + 800, 0))
+
+    screen.blit(spr_near, (x_near, 0))
+    screen.blit(spr_near, (x_near + 800, 0))
+    
+    return x_far, x_middle, x_near
+
+def game():
     x_far = 0
     x_middle = 0
     x_near = 0
-
     debug_mode = False
     pause = False
     char_x = 400
@@ -173,27 +195,8 @@ def game():
             move_y = 0
         char_x += move_x * 20     
         char_y += move_y * 20  
-            
-        screen.fill(white)
-        screen.blit(spr_far, (0,0) )
-
-        x_far = x_far - 0.2
-        x_middle = x_middle - 0.7
-        x_near = x_near - 2
-
-        if x_far <= -800: x_far = 0
-        if x_middle <= -800: x_middle = 0
-        if x_near <= -800: x_near = 0
-
-        # Desenha duas cópias de cada camada para "colar" uma na outra
-        screen.blit(spr_far, (x_far, 0))
-        screen.blit(spr_far, (x_far + 800, 0))
-
-        screen.blit(spr_middle, (x_middle, 0))
-        screen.blit(spr_middle, (x_middle + 800, 0))
-
-        screen.blit(spr_near, (x_near, 0))
-        screen.blit(spr_near, (x_near + 800, 0))
+        
+        x_far, x_middle, x_near = backGround(x_far, x_middle, x_near)
 
         rocket_y = rocket_y + move_rocket
         if rocket_y > 600:
@@ -237,7 +240,6 @@ def start():
     quitB_width = 150
     quitB_height  = 40
     
-
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:

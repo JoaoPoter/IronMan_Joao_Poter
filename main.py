@@ -1,12 +1,12 @@
-import pygame, random, json, tkinter as tk
+import pygame, random, sys, json, tkinter as tk
 from tkinter import messagebox
 from recursos.funcoes import inicializarBancoDeDados
 
 pygame.init()
 inicializarBancoDeDados()
-aspect_ratio = (1200,800)
+aspect_ratio = (1200, 740)
 clock = pygame.time.Clock()
-screen = pygame.display.set_mode(aspect_ratio) 
+screen = pygame.display.set_mode(aspect_ratio)
 
 pygame.display.set_caption("Iron Man do J_Poter")
 icon  = pygame.image.load("assets/icone.png")
@@ -23,6 +23,7 @@ snd_rocket = pygame.mixer.Sound("assets/missile.wav")
 snd_explosion = pygame.mixer.Sound("assets/explosao.wav")
 font_menu = pygame.font.SysFont("comicsans",18)
 font_dead = pygame.font.SysFont("arial",120)
+font_debug = pygame.font.SysFont(None, 16)
 pygame.mixer.music.load("assets/ironsound.mp3")
 
 spr_far = pygame.transform.scale(spr_far, (aspect_ratio[0], aspect_ratio[1]))
@@ -82,6 +83,8 @@ def game():
     x_middle = 0
     x_near = 0
 
+    debug_mode = False
+    pause = False
     char_x = 400
     char_y = 300
     move_x  = 0
@@ -99,21 +102,91 @@ def game():
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
-
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F3:
+                if debug_mode:
+                    debug_mode = False
+                else:
+                    debug_mode = True
+                    debug_lines = [
+                        f"FPS: {clock.get_fps()}",
+                        f"Posição do Personagem: ({char_x}, {char_y})",
+                        f"Movimento do Personagem: ({move_x}, {move_y})",
+                        f"Posição do Foguete: ({rocket_x}, {rocket_y})",
+                        f"Movimento do Foguete: {move_rocket}",
+                        f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}"
+                    ]
+                    while True:
+                        for i, line in enumerate(debug_lines):
+                            text = font_dead.render(line, True, (255, 255, 255))
+                            screen.blit(text, (10, 10 + i * 20))
+                        for evento in pygame.event.get():
+                            if evento.type == pygame.QUIT:
+                                quit()
+                            if evento.type == pygame.KEYDOWN:
+                                if evento.key == pygame.K_F3:
+                                    debug_mode = False
+                                    pygame.mixer.music.play(-1)
+                                    break
+                        if debug_mode == False:
+                                break
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
+                pause = True
+                pygame.mixer.music.stop()
+                startB_width = 150
+                startB_height = 40
+                quitB_width = 150
+                quitB_height  = 40
+                startB = pygame.draw.rect(screen, white, (10,10, startB_width, startB_height), border_radius=15)
+                start_txt = font_menu.render("Iniciar Game", True, black)
+                screen.blit(start_txt, (25,12))
+                quitB = pygame.draw.rect(screen, white, (10,60, quitB_width, quitB_height), border_radius=15)
+                quit_txt = font_menu.render("Sair do Game", True, black)
+                screen.blit(quit_txt, (25,62))
+                pygame.display.update()
+                while True:
+                    for evento in pygame.event.get():
+                        if evento.type == pygame.QUIT:
+                            quit()
+                        elif evento.type == pygame.MOUSEBUTTONDOWN:
+                            if startB.collidepoint(evento.pos):
+                                startB_width = 140
+                                startB_height = 35
+                            if quitB.collidepoint(evento.pos):
+                                quitB_width = 140
+                                quitB_height  = 35
+                            
+                        elif evento.type == pygame.MOUSEBUTTONUP:
+                            if startB.collidepoint(evento.pos):
+                                pygame.mixer.music.play(-1)
+                                pause = False
+                                startB_width = 150
+                                startB_height = 40
+                                break
+                                
+                            if quitB.collidepoint(evento.pos):
+                                #pygame.mixer.music.play(-1)
+                                quitB_width = 150
+                                quitB_height  = 40
+                                quit()
+                        elif evento.type == pygame.KEYDOWN:
+                            if evento.key == pygame.K_ESCAPE:
+                                pause = False
+                                pygame.mixer.music.play(-1)
+                                break
+                    if pause == False:
+                            break
         keys = pygame.key.get_pressed()
         move_x = keys[pygame.K_d] - keys[pygame.K_a]
         move_y = keys[pygame.K_s] - keys[pygame.K_w]
         
-        if char_x < 0:
-            if move_x < 0:
-                move_x = 0
-        if char_x > screen.get_width() - char_width:
-            if move_x > 0:
-                move_x = 0
-        if char_y < 0:
-            if move_y < 0:
-                move_y = 0
-
+        if char_x <= 0 and move_x <= 0:
+            move_x = 0
+        if char_x >= screen.get_width() - char_width and move_x >= 0:
+            move_x = 0
+        if char_y <= 0 and move_y <= 0:
+            move_y = 0
+        if char_y >= screen.get_height() - char_height - 1 and move_y >= 0:
+            move_y = 0
         char_x += move_x * 20     
         char_y += move_y * 20  
             
@@ -153,8 +226,8 @@ def game():
         if colisao_retangulos(char_x, char_y, char_width, char_height,
             rocket_x, rocket_y, rocket_width, rocket_height):
             dead()
-        else:
-            print("Ainda Vivo")
+        #else:
+            #print("Ainda Vivo")
             
         screen.blit(spr_iron, (char_x, char_y) )
 

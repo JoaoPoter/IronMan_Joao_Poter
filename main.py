@@ -1,6 +1,5 @@
-import pygame, random, sys, json, tkinter as tk
-from tkinter import messagebox
-from recursos.funcoes import inicializarBancoDeDados
+import pygame, random, json, tkinter as tk
+from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal
 
 pygame.init()
 inicializarBancoDeDados()
@@ -35,76 +34,11 @@ spr_dead = pygame.transform.scale(spr_dead, (aspect_ratio[0], aspect_ratio[1]))
 white = (255,255,255)
 black = (0, 0 ,0 )
 
-def colisao_retangulos(x1, y1, w1, h1, x2, y2, w2, h2):
-    return (
-        x1 < x2 + w2 and
-        x1 + w1 > x2 and
-        y1 < y2 + h2 and
-        y1 + h1 > y2
-    )
-
-def get_name():
-    screen_width = 300
-    screen_height = 50
-    
-    global name
-    name = entry_name.get()  # Obtém o texto digitado
-    if not name:  # Se o campo estiver vazio
-        messagebox.showwarning("Aviso", "Por favor, digite seu name!")  # Exibe uma mensagem de aviso
-    else:
-       #print(f'name digitado: {name}')  # Exibe o name no console
-            root.destroy()  # Fecha a janela após a entrada válida
-
-    # Criação da janela principal
-    root = tk.Tk()
-    # get as dimensões da screen
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    pos_x = (screen_width - screen_width) // 2
-    pos_y = (screen_height - screen_height) // 2
-    root.geometry(f"{screen_width}x{screen_height}+{pos_x}+{pos_y}")
-    root.title("Informe seu nickname")
-    root.protocol("WM_DELETE_WINDOW", get_name)
-
-    # Entry (campo de texto)
-    entry_name = tk.Entry(root)
-    entry_name.pack()
-
-    # Botão para pegar o name
-    botao = tk.Button(root, text="Enviar", command=get_name)
-    botao.pack()
-
-    # Inicia o loop da interface gráfica
-    root.mainloop()
-
-def backGround(x_far, x_middle, x_near):
-
-    screen.fill(white)
-    screen.blit(spr_far, (0,0) )
-
-    x_far = x_far - 0.2
-    x_middle = x_middle - 0.7
-    x_near = x_near - 2
-
-    if x_far <= -800: x_far = 0
-    if x_middle <= -800: x_middle = 0
-    if x_near <= -800: x_near = 0
-
-    screen.blit(spr_far, (x_far, 0))
-    screen.blit(spr_far, (x_far + 800, 0))
-
-    screen.blit(spr_middle, (x_middle, 0))
-    screen.blit(spr_middle, (x_middle + 800, 0))
-
-    screen.blit(spr_near, (x_near, 0))
-    screen.blit(spr_near, (x_near + 800, 0))
-    
-    return x_far, x_middle, x_near
-
 def game():
     x_far = 0
     x_middle = 0
     x_near = 0
+    air_resistance = 10
     debug_mode = False
     pause = False
     char_x = 400
@@ -181,22 +115,10 @@ def game():
                                 break
                     if pause == False:
                             break
-        keys = pygame.key.get_pressed()
-        move_x = keys[pygame.K_d] - keys[pygame.K_a]
-        move_y = keys[pygame.K_s] - keys[pygame.K_w]
         
-        if char_x <= 0 and move_x <= 0:
-            move_x = 0
-        if char_x >= screen.get_width() - char_width and move_x >= 0:
-            move_x = 0
-        if char_y <= 0 and move_y <= 0:
-            move_y = 0
-        if char_y >= screen.get_height() - char_height - 1 and move_y >= 0:
-            move_y = 0
-        char_x += move_x * 20     
-        char_y += move_y * 20  
-        
-        x_far, x_middle, x_near = backGround(x_far, x_middle, x_near)
+        char_x, char_y = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance)
+
+        x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
         rocket_y = rocket_y + move_rocket
         if rocket_y > 600:

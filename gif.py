@@ -1,9 +1,9 @@
-from assets import than_rock.gif
-import pygame, PIL
+from PIL import Image
+import pygame, os
 
-
+gif_path = os.path.join("assets", "than_rock.gif",)
 # Carrega o GIF e extrai os frames
-gif = Image.open("than_rock.gif")
+gif = Image.open(gif_path)
 frames = []
 
 try:

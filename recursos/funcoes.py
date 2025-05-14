@@ -42,30 +42,6 @@ def colisao_retangulos(x1, y1, w1, h1, x2, y2, w2, h2):
         y1 + h1 > y2
     )
 
-def backGround(x_far, x_middle, x_near):
-
-    screen.fill(white)
-    screen.blit(spr_far, (0,0) )
-
-    x_far = x_far - 0.2
-    x_middle = x_middle - 0.7
-    x_near = x_near - 2
-
-    if x_far <= -800: x_far = 0
-    if x_middle <= -800: x_middle = 0
-    if x_near <= -800: x_near = 0
-
-    screen.blit(spr_far, (x_far, 0))
-    screen.blit(spr_far, (x_far + 800, 0))
-
-    screen.blit(spr_middle, (x_middle, 0))
-    screen.blit(spr_middle, (x_middle + 800, 0))
-
-    screen.blit(spr_near, (x_near, 0))
-    screen.blit(spr_near, (x_near + 800, 0))
-    
-    return x_far, x_middle, x_near
-
 def backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white):
 
     screen.fill(white)
@@ -104,8 +80,8 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
         move_y = 0
     if obj_y >= screen.get_height() - obj_height - 1 and move_y >= 0:
         move_y = 0
-    obj_x += move_x * 120
-    obj_y += move_y * 20
+    obj_x += move_x * 25
+    obj_y += move_y * 15
     obj_x -= air_resistance
     return obj_x, obj_y
 

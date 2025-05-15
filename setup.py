@@ -1,3 +1,4 @@
+
 # pip install cx_freeze
 import cx_Freeze
 executaveis = [ 
@@ -11,6 +12,3 @@ cx_Freeze.setup(
         }
     }, executables = executaveis
 )
-
-# python setup.py build
-# python setup.py bdist_msi

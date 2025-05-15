@@ -66,7 +66,7 @@ def backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, w
     
     return x_far, x_middle, x_near
 
-def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y, air_resistance):
+def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y, air_resistance, obj_spr, obj_moving, obj_not_moving):
     keys = pygame.key.get_pressed()
     move_x = keys[pygame.K_SPACE]
     move_y = keys[pygame.K_s] - keys[pygame.K_w]
@@ -76,13 +76,20 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
         air_resistance = 0
     elif obj_x >= screen.get_width() - obj_width - 1 and move_x >= 0:
         move_x = 0
-    if obj_y <= 0 and move_y <= 0:
+    elif obj_y <= 0 and move_y <= 0:
         move_y = 0
-    if obj_y >= screen.get_height() - obj_height - 1 and move_y >= 0:
+    elif obj_y >= screen.get_height() - obj_height - 1 and move_y >= 0:
         move_y = 0
+    
+    if move_x != 0 or move_y != 0:
+        if move_x > 0:
+            obj_spr = obj_moving
+        elif move_x < 0:
+            obj_spr = obj_not_moving
+    else:
+        obj_spr = obj_not_moving
+        
     obj_x += move_x * 25
     obj_y += move_y * 15
     obj_x -= air_resistance
-    return obj_x, obj_y
-
-
+    return obj_x, obj_y, obj_spr

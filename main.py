@@ -1,5 +1,7 @@
-import pygame, random, json, tkinter as tk
+import pygame, random, time, asyncio
 from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal
+from recursos.animation import SpriteAnimator
+from recursos.gif import extract_frames
 
 pygame.init()
 inicializarBancoDeDados()
@@ -16,13 +18,15 @@ spr_start_b = pygame.transform.scale(spr_start_b, (300, 50))
 spr_quit_b = pygame.image.load("assets/quit_b.png")
 spr_quit_b = pygame.transform.scale(spr_quit_b, (300, 50))
 
-spr_iron = pygame.image.load("assets/iron_soaring.png")
+spr_iron_soaring = pygame.image.load("assets/iron_soaring.png")
+spr_iron_boosting = pygame.image.load("assets/iron_boosting.png")
 spr_iron_bg = pygame.image.load("assets/iron_start.jpg")
 spr_far = pygame.image.load("assets/back.png")
 spr_middle = pygame.image.load("assets/mid.png")
 spr_near = pygame.image.load("assets/front.png")
 spr_dead = pygame.image.load("assets/fundoDead.png")
 spr_rocket = pygame.image.load("assets/missile.png")
+spr_than = pygame.image.load("assets/than.gif")
 snd_rocket = pygame.mixer.Sound("assets/missile.wav")
 snd_explosion = pygame.mixer.Sound("assets/explosao.wav")
 font_title = pygame.font.Font("assets/Ethnocentric Rg.otf", 50)
@@ -41,11 +45,37 @@ white = (255,255,255)
 black = (0, 0 ,0 )
 cinza = (100, 100, 100)
 
+than_x = 750
+than_y = 150
+
 b_n = 0
 start = 0
 dark_overlay = pygame.Surface(screen.get_size())
 dark_overlay.fill((0, 0, 0))
 dark_overlay.set_alpha(100)  # Valor entre 0 (transparente) e 255 (opaco)
+
+extract_frames("assets/than_rock.gif", "assets/frames_thanrock")
+extract_frames("assets/than_handy.gif", "assets/frames_handy")
+
+than_handy = SpriteAnimator(
+    images=[pygame.image.load(f"assets/frames_handy/frame_{i:03d}.png") for i in range(1, 5)],
+    pos=(than_x, than_y),
+    size=(450, 500),
+    animation_speed=7,
+    flip=True
+)
+than_rock = SpriteAnimator(
+    images=[pygame.image.load(f"assets/frames_thanrock/frame_{i:03d}.png") for i in range(1, 10)],
+    pos=(than_x, than_y),
+    size=(450, 500),
+    animation_speed=7,
+    flip=True
+)
+
+async def than_handy_time():
+    await asyncio.sleep(10)
+
+    than_handy.update(screen)
 
 def menu(start,b_n):
     b_width = 300
@@ -113,20 +143,22 @@ def game():
     air_resistance = 10
     debug_mode = False
     pause = False
-    char_x = 400
+    char_x = 100
     char_y = 300
     move_x  = 0
     move_y  = 0
-    rocket_x = 400
-    rocket_y = -240
-    move_rocket = 1
+    rocket_x = 1240
+    rocket_y = 300
+    move_rocket = -10
+    spr_iron = spr_iron_soaring
     pygame.mixer.Sound.play(snd_rocket)
     pygame.mixer.music.play(-1)
-    char_width = spr_iron.get_width()
-    char_height = spr_iron.get_height()
+    char_width = spr_iron_soaring.get_width()
+    char_height = spr_iron_soaring.get_height()
     rocket_width  = spr_rocket.get_width()
     rocket_height  = spr_rocket.get_height()
     while True:
+
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
@@ -188,19 +220,23 @@ def game():
                     if pause == False:
                             break
         
-        char_x, char_y = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance)
+        char_x, char_y, spr_iron = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
         x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
-        rocket_y = rocket_y + move_rocket
-        if rocket_y > 500:
-            rocket_y = -240
-            move_rocket = move_rocket + 1
-            rocket_x = random.randint(0,800)
+        rocket_x = rocket_x + move_rocket
+        if rocket_x < 0:
+            rocket_x = 1240
+            move_rocket += 1
+            rocket_y = random.randint(0,600)
             pygame.mixer.Sound.play(snd_rocket)
             
             
         screen.blit(spr_rocket, (rocket_x, rocket_y) )
+        
+        screen.blit(spr_than, (than_x, than_y))
+
+        asyncio.run(than_handy_time())
         
         #Vida
         
@@ -219,7 +255,9 @@ def game():
                 f"Movimento do Personagem: ({move_x}, {move_y})",
                 f"Posição do Foguete: ({rocket_x}, {rocket_y})",
                 f"Movimento do Foguete: {move_rocket}",
-                f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}"
+                f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
+                f"posição thanos: ({than_handy.x}, {than_handy.y})",
+                f"movimento thanos: {than_handy.move_speed}",
             ]
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))

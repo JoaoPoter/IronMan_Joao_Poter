@@ -76,7 +76,7 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
         air_resistance = 0
     elif obj_x >= screen.get_width() - obj_width - 1 and move_x >= 0:
         move_x = 0
-    elif obj_y <= 0 and move_y <= 0:
+    if obj_y <= 0 and move_y <= 0:
         move_y = 0
     elif obj_y >= screen.get_height() - obj_height - 1 and move_y >= 0:
         move_y = 0

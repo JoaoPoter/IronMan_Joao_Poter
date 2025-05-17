@@ -1,4 +1,4 @@
-import pygame, random, time, asyncio
+import pygame, random, time
 from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
@@ -72,13 +72,8 @@ than_rock = SpriteAnimator(
     flip=True
 )
 
-async def than_handy_time():
-    await asyncio.sleep(10)
-
-    than_handy.update(screen)
-
 def menu(start,b_n):
-    b_width = 300
+    b_width = 250
     b_height = 50
     txt_pos = [300, 230]
     buttons = [None] * b_n
@@ -231,12 +226,9 @@ def game():
             rocket_y = random.randint(0,600)
             pygame.mixer.Sound.play(snd_rocket)
             
-            
         screen.blit(spr_rocket, (rocket_x, rocket_y) )
         
         screen.blit(spr_than, (than_x, than_y))
-
-        asyncio.run(than_handy_time())
         
         #Vida
         
@@ -256,8 +248,7 @@ def game():
                 f"Posição do Foguete: ({rocket_x}, {rocket_y})",
                 f"Movimento do Foguete: {move_rocket}",
                 f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
-                f"posição thanos: ({than_handy.x}, {than_handy.y})",
-                f"movimento thanos: {than_handy.move_speed}",
+                f"posição thanos: ({than_handy.x}, {than_handy.y})",s
             ]
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))

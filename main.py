@@ -1,5 +1,5 @@
 import pygame, random, time
-from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal
+from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
 
@@ -50,9 +50,6 @@ than_y = 150
 
 b_n = 0
 start = 0
-dark_overlay = pygame.Surface(screen.get_size())
-dark_overlay.fill((0, 0, 0))
-dark_overlay.set_alpha(100)  # Valor entre 0 (transparente) e 255 (opaco)
 
 extract_frames("assets/than_rock.gif", "assets/frames_thanrock")
 extract_frames("assets/than_handy.gif", "assets/frames_handy")
@@ -72,22 +69,29 @@ than_rock = SpriteAnimator(
     flip=True
 )
 
-def menu(start,b_n):
+def menu(start, b_n, pause):
+    dark_overlay = pygame.Surface(screen.get_size())
+    dark_overlay.fill((0, 0, 0))
+    dark_overlay.set_alpha(100)  # Valor entre 0 (transparente) e 255 (opaco)
     b_width = 250
     b_height = 50
     txt_pos = [300, 230]
     buttons = [None] * b_n
+    if pause == False:
+        return True
+    pause = pause
     for i in range(b_n):
         buttons[i] = f"b_{i}"
     if start:
         screen.fill(white)
-        screen.blit(spr_iron_bg, (0,0))
-        title = font_title.render("Iron Man", True, cinza)
-        screen.blit(title, (303,53))
-        title = font_title.render("Iron Man", True, white)
-        screen.blit(title, (300,50))
+        screen.blit(spr_iron_bg, (0, 0))
+        fade_text("Iron Man", font_title, cinza, (303, 53), screen, fade_in=True, duracao=300)
+        fade_text("Iron Man", font_title, white, (300, 50), screen, fade_in=True, duracao=600)
     else:
-        screen.blit(dark_overlay,(0, 0))
+        screen.blit(dark_overlay, (0, 0))
+        fade_text("Pause", font_title, cinza, (303, 53), screen, fade_in=True, duracao=300)
+        fade_text("Pause", font_title, white, (300, 50), screen, fade_in=True, duracao=600)
+
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -109,24 +113,35 @@ def menu(start,b_n):
                     #pygame.mixer.music.play(-1)
                     b_width = 150
                     b_height = 40
-                    start = 0
-                    game()
+                    if start:
+                        start = 0
+                        game()
+                    else:
+                        pause = False
+                        pygame.mixer_music.set_volume(1)
+                        return True
                 if b2.collidepoint(evento.pos):
                     #pygame.mixer.music.play(-1)
                     b_width = 150
                     b_height  = 40
                     quit()
+            elif evento.type == pygame.KEYDOWN:
+                    if not start:
+                        if evento.key == pygame.K_ESCAPE:
+                            pause = False
+                            return True
         
         for i in range(b_n):
             if buttons[i] == "b_0":
                 b1 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1], b_width, b_height), border_radius=15)
                 screen.blit(spr_start_b, (txt_pos[0]-50,txt_pos[1]))
                 start_txt = font_menu.render("Iniciar Game", True, black)
-                screen.blit(start_txt, (txt_pos[0],txt_pos[1]))
+                screen.blit(start_txt, (txt_pos[0],txt_pos[1]+10))
             elif buttons[i] == "b_1":
-                b2 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1]+50, b_width, b_height), border_radius=15)
+                b2 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1]+70, b_width, b_height), border_radius=15)
+                screen.blit(spr_quit_b, (txt_pos[0]-50,txt_pos[1]+70))
                 quit_txt = font_menu.render("Sair do Game", True, black)
-                screen.blit(quit_txt, (txt_pos[0],txt_pos[1]+50))
+                screen.blit(quit_txt, (txt_pos[0],txt_pos[1]+80))
 
         pygame.display.update()
         clock.tick(50)
@@ -137,7 +152,6 @@ def game():
     x_near = 0
     air_resistance = 10
     debug_mode = False
-    pause = False
     char_x = 100
     char_y = 300
     move_x  = 0
@@ -165,55 +179,13 @@ def game():
                     print("Debug Mode Ativado")
                     if evento.type == pygame.KEYUP:
                         if evento.key == pygame.K_F3:
-                            debug_mode = False
-                            pygame.mixer.music.play(-1)
+                            debug_mode = False[
+                            pygame.mixer.music.play(-1)]
                             break
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
-                pause = True
-                pygame.mixer.music.stop()
-                b_width = 150
-                b_height = 40
-                b_width = 150
-                b_height  = 40
-                b = pygame.draw.rect(screen, white, (10,10, b_width, b_height), border_radius=15)
-                start_txt = font_menu.render("Iniciar Game", True, black)
-                screen.blit(start_txt, (25,12))
-                b = pygame.draw.rect(screen, white, (10,50, b_width, b_height), border_radius=15)
-                quit_txt = font_menu.render("Sair do Game", True, black)
-                screen.blit(quit_txt, (25,62))
-                pygame.display.update()
-                while True:
-                    for evento in pygame.event.get():
-                        if evento.type == pygame.QUIT:
-                            quit()
-                        elif evento.type == pygame.MOUSEBUTTONDOWN:
-                            if b.collidepoint(evento.pos):
-                                b_width = 140
-                                b_height = 35
-                            if b.collidepoint(evento.pos):
-                                b_width = 140
-                                b_height  = 35
-                            
-                        elif evento.type == pygame.MOUSEBUTTONUP:
-                            if b.collidepoint(evento.pos):
-                                pygame.mixer.music.play(-1)
-                                pause = False
-                                b_width = 150
-                                b_height = 40
-                                break
-                                
-                            if b.collidepoint(evento.pos):
-                                #pygame.mixer.music.play(-1)
-                                b_width = 150
-                                b_height  = 40
-                                quit()
-                        elif evento.type == pygame.KEYDOWN:
-                            if evento.key == pygame.K_ESCAPE:
-                                pause = False
-                                pygame.mixer.music.play(-1)
-                                break
-                    if pause == False:
-                            break
+                pygame.mixer_music.set_volume(0.5)
+                menu(start=0, b_n=2, pause = True)
+                        
         
         char_x, char_y, spr_iron = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
@@ -248,7 +220,7 @@ def game():
                 f"Posição do Foguete: ({rocket_x}, {rocket_y})",
                 f"Movimento do Foguete: {move_rocket}",
                 f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
-                f"posição thanos: ({than_handy.x}, {than_handy.y})",s
+                f"posição thanos: ({than_handy.x}, {than_handy.y})"
             ]
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))
@@ -260,10 +232,6 @@ def game():
 def dead():
     pygame.mixer.music.stop()
     pygame.mixer.Sound.play(snd_explosion)
-    b_width = 150
-    b_height = 40
-    b_width = 150
-    b_height  = 40
 
     # Adiciona o log das partidas no Listbox
     '''log_partidas = open("base.atitus", "r").read()
@@ -272,49 +240,10 @@ def dead():
         listbox.insert(tk.END, f"Pontos: {log_partidas[chave][0]} na data: {log_partidas[chave][1]} - Nickname: {chave}")  # Adiciona cada linha no Listbox
     
     root.mainloop()'''
-    while True:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                quit()
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
-                if b.collidepoint(evento.pos):
-                    b_width = 140
-                    b_height = 35
-                if b.collidepoint(evento.pos):
-                    b_width = 140
-                    b_height  = 35
 
-                
-            elif evento.type == pygame.MOUSEBUTTONUP:
-                # Verifica se o clique foi dentro do retângulo
-                if b.collidepoint(evento.pos):
-                    #pygame.mixer.music.play(-1)
-                    b_width = 150
-                    b_height = 40
-                    game()
-                if b.collidepoint(evento.pos):
-                    #pygame.mixer.music.play(-1)
-                    b_width = 150
-                    b_height  = 40
-                    quit()
-                    
-        
-            
-            
-        screen.fill(white)
-        screen.blit(spr_dead, (0,0) )
+    screen.fill(white)
+    screen.blit(spr_dead, (0,0) )
 
-        
-        b = pygame.draw.rect(screen, white, (10,10, b_width, b_height), border_radius=15)
-        start_txt = font_menu.render("Iniciar Game", True, black)
-        screen.blit(start_txt, (25,12))
-        
-        b = pygame.draw.rect(screen, white, (10,50, b_width, b_height), border_radius=15)
-        quit_txt = font_menu.render("Sair do Game", True, black)
-        screen.blit(quit_txt, (25,62))
+    menu(start=0, b_n=2)
 
-
-        pygame.display.update()
-        clock.tick(50)
-
-menu(start=1, b_n=2)
+menu(start=1, b_n=2, pause = True)

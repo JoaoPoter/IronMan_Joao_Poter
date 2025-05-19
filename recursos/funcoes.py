@@ -1,13 +1,6 @@
 import os, time, json, pygame
 from datetime import datetime
 
-
-def limpar_tela():
-    os.system("cls")
-    
-def aguarde(segundos):
-    time.sleep(segundos)
-    
 def inicializarBancoDeDados():
     # r - read, w - write, a - append
     try:
@@ -93,3 +86,26 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
     obj_y += move_y * 15
     obj_x -= air_resistance
     return obj_x, obj_y, obj_spr
+
+def fade_text(texto, fonte, cor, pos, screen, fade_in=True, duracao=1000):
+    texto_surface = fonte.render(texto, True, cor)
+    alpha_surface = pygame.Surface(texto_surface.get_size(), pygame.SRCALPHA)
+
+    tempo_inicial = pygame.time.get_ticks()
+    tempo_atual = 0
+    clock = pygame.time.Clock()
+    
+    while tempo_atual < duracao:
+        tempo_atual = pygame.time.get_ticks() - tempo_inicial
+        progresso = tempo_atual / duracao
+        alpha = int(progresso * 255) if fade_in else int((1 - progresso) * 255)
+        alpha = max(0, min(255, alpha))
+
+        alpha_surface.fill((255, 255, 255, 0))  # limpa
+        alpha_surface.blit(texto_surface, (0, 0))
+        alpha_surface.set_alpha(alpha)
+
+        screen.blit(alpha_surface, pos)
+        pygame.display.update()
+        clock.tick(60)
+

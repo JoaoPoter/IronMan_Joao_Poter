@@ -1,7 +1,8 @@
 import pygame, random, time
-from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text
+from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, carregar_frames
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
+import sys
 
 pygame.init()
 inicializarBancoDeDados()
@@ -25,15 +26,17 @@ spr_far = pygame.image.load("assets/back.png")
 spr_middle = pygame.image.load("assets/mid.png")
 spr_near = pygame.image.load("assets/front.png")
 spr_dead = pygame.image.load("assets/fundoDead.png")
-spr_rocket = pygame.image.load("assets/missile.png")
 spr_than = pygame.image.load("assets/than.gif")
-snd_rocket = pygame.mixer.Sound("assets/missile.wav")
 snd_explosion = pygame.mixer.Sound("assets/explosao.wav")
 font_title = pygame.font.Font("assets/Ethnocentric Rg.otf", 50)
 font_menu = pygame.font.Font("assets/Ethnocentric Rg.otf",18)
 font_dead = pygame.font.SysFont("arial",120)
 font_debug = pygame.font.SysFont(None, 16)
 pygame.mixer.music.load("assets/ironsound.mp3")
+
+than_aspect = [spr_than.get_width(), spr_than.get_height()]
+spr_than = pygame.transform.scale(spr_than, (than_aspect[0]*2, than_aspect[1]*2))
+spr_than = pygame.transform.flip(spr_than, True, False)
 
 spr_far = pygame.transform.scale(spr_far, (aspect_ratio[0], aspect_ratio[1]))
 spr_middle = pygame.transform.scale(spr_middle, (aspect_ratio[0], aspect_ratio[1]))
@@ -45,7 +48,7 @@ white = (255,255,255)
 black = (0, 0 ,0 )
 cinza = (100, 100, 100)
 
-than_x = 750
+than_x = 650
 than_y = 150
 
 b_n = 0
@@ -54,20 +57,11 @@ start = 0
 extract_frames("assets/than_rock.gif", "assets/frames_thanrock")
 extract_frames("assets/than_handy.gif", "assets/frames_handy")
 
-than_handy = SpriteAnimator(
-    images=[pygame.image.load(f"assets/frames_handy/frame_{i:03d}.png") for i in range(1, 5)],
-    pos=(than_x, than_y),
-    size=(450, 500),
-    animation_speed=7,
-    flip=True
-)
-than_rock = SpriteAnimator(
-    images=[pygame.image.load(f"assets/frames_thanrock/frame_{i:03d}.png") for i in range(1, 10)],
-    pos=(than_x, than_y),
-    size=(450, 500),
-    animation_speed=7,
-    flip=True
-)
+sprites = carregar_frames("assets/frames_handy")
+
+sprites = carregar_frames("assets/frames_handy")
+
+than_handy = SpriteAnimator(than_x, than_y, sprites, tempo_frame=150)
 
 def menu(start, b_n, pause):
     dark_overlay = pygame.Surface(screen.get_size())
@@ -91,6 +85,18 @@ def menu(start, b_n, pause):
         screen.blit(dark_overlay, (0, 0))
         fade_text("Pause", font_title, cinza, (303, 53), screen, fade_in=True, duracao=300)
         fade_text("Pause", font_title, white, (300, 50), screen, fade_in=True, duracao=600)
+    
+    for i in range(b_n):
+        if buttons[i] == "b_0":
+            b1 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1], b_width, b_height), border_radius=15)
+            screen.blit(spr_start_b, (txt_pos[0]-50,txt_pos[1]))
+            start_txt = font_menu.render("Iniciar Game", True, black)
+            screen.blit(start_txt, (txt_pos[0],txt_pos[1]+10))
+        elif buttons[i] == "b_1":
+            b2 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1]+70, b_width, b_height), border_radius=15)
+            screen.blit(spr_quit_b, (txt_pos[0]-50,txt_pos[1]+70))
+            quit_txt = font_menu.render("Sair do Game", True, black)
+            screen.blit(quit_txt, (txt_pos[0],txt_pos[1]+80))
 
     while True:
         for evento in pygame.event.get():
@@ -131,18 +137,6 @@ def menu(start, b_n, pause):
                             pause = False
                             return True
         
-        for i in range(b_n):
-            if buttons[i] == "b_0":
-                b1 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1], b_width, b_height), border_radius=15)
-                screen.blit(spr_start_b, (txt_pos[0]-50,txt_pos[1]))
-                start_txt = font_menu.render("Iniciar Game", True, black)
-                screen.blit(start_txt, (txt_pos[0],txt_pos[1]+10))
-            elif buttons[i] == "b_1":
-                b2 = pygame.draw.rect(screen, white, (txt_pos[0],txt_pos[1]+70, b_width, b_height), border_radius=15)
-                screen.blit(spr_quit_b, (txt_pos[0]-50,txt_pos[1]+70))
-                quit_txt = font_menu.render("Sair do Game", True, black)
-                screen.blit(quit_txt, (txt_pos[0],txt_pos[1]+80))
-
         pygame.display.update()
         clock.tick(50)
 
@@ -156,16 +150,10 @@ def game():
     char_y = 300
     move_x  = 0
     move_y  = 0
-    rocket_x = 1240
-    rocket_y = 300
-    move_rocket = -10
     spr_iron = spr_iron_soaring
-    pygame.mixer.Sound.play(snd_rocket)
     pygame.mixer.music.play(-1)
     char_width = spr_iron_soaring.get_width()
     char_height = spr_iron_soaring.get_height()
-    rocket_width  = spr_rocket.get_width()
-    rocket_height  = spr_rocket.get_height()
     while True:
 
         for evento in pygame.event.get():
@@ -185,30 +173,13 @@ def game():
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
                 pygame.mixer_music.set_volume(0.5)
                 menu(start=0, b_n=2, pause = True)
-                        
         
         char_x, char_y, spr_iron = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
         x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
-        rocket_x = rocket_x + move_rocket
-        if rocket_x < 0:
-            rocket_x = 1240
-            move_rocket += 1
-            rocket_y = random.randint(0,600)
-            pygame.mixer.Sound.play(snd_rocket)
-            
-        screen.blit(spr_rocket, (rocket_x, rocket_y) )
-        
-        screen.blit(spr_than, (than_x, than_y))
-        
-        #Vida
-        
-        if colisao_retangulos(char_x, char_y, char_width, char_height,
-            rocket_x, rocket_y, rocket_width, rocket_height):
-            dead()
-        #else:
-            #print("Ainda Vivo")
+        than_handy.atualizar()
+        than_handy.desenhar(screen)
             
         screen.blit(spr_iron, (char_x, char_y) )
 
@@ -217,9 +188,7 @@ def game():
                 f"FPS: {clock.get_fps()}",
                 f"Posição do Personagem: ({char_x}, {char_y})",
                 f"Movimento do Personagem: ({move_x}, {move_y})",
-                f"Posição do Foguete: ({rocket_x}, {rocket_y})",
-                f"Movimento do Foguete: {move_rocket}",
-                f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
+                #f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
                 f"posição thanos: ({than_handy.x}, {than_handy.y})"
             ]
             for i, line in enumerate(debug_lines):

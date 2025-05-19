@@ -42,7 +42,7 @@ def backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, w
 
     x_far = x_far - 0.2
     x_middle = x_middle - 0.7
-    x_near = x_near - 2
+    x_near = x_near - 3
 
     if x_far <= -800: x_far = 0
     if x_middle <= -800: x_middle = 0
@@ -82,7 +82,7 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
     else:
         obj_spr = obj_not_moving
         
-    obj_x += move_x * 25
+    obj_x += move_x * 30
     obj_y += move_y * 15
     obj_x -= air_resistance
     return obj_x, obj_y, obj_spr
@@ -109,3 +109,12 @@ def fade_text(texto, fonte, cor, pos, screen, fade_in=True, duracao=1000):
         pygame.display.update()
         clock.tick(60)
 
+def carregar_frames(pasta):
+    frames = []
+    arquivos = sorted(os.listdir(pasta))
+    for arquivo in arquivos:
+        if arquivo.endswith(".png"):
+            caminho = os.path.join(pasta, arquivo)
+            imagem = pygame.image.load(caminho).convert_alpha()
+            frames.append(imagem)
+    return frames

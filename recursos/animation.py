@@ -1,24 +1,19 @@
-# sprite_animator.py
 import pygame
 
 class SpriteAnimator:
-    def __init__(self, images: list, pos: tuple, size: tuple, animation_speed: int, flip: bool = False):
-        self.images = [pygame.transform.scale(img, size) for img in images]
-        self.x, self.y = pos
-        self.size = size
-        self.animation_speed = animation_speed
-        self.index = 0
-        self.clock = pygame.time.Clock()
-        self.moving = False
-        self.flip = flip
-        if self.flip:
-            self.images = [pygame.transform.flip(img, True, False) for img in self.images]
+    def __init__(self, x, y, sprites, tempo_frame=150):
+        self.x = x
+        self.y = y
+        self.sprites = sprites
+        self.tempo_frame = tempo_frame  # em milissegundos
+        self.frame_atual = 0
+        self.ultimo_update = pygame.time.get_ticks()
 
-    def update(self, window):
-        self.clock.tick(self.animation_speed)
-        
-        self.index += 1
-        if self.index >= len(self.images):
-           self.index = 0
+    def atualizar(self):
+        agora = pygame.time.get_ticks()
+        if agora - self.ultimo_update > self.tempo_frame:
+            self.frame_atual = (self.frame_atual + 1) % len(self.sprites)
+            self.ultimo_update = agora
 
-        window.blit(self.images[self.index], (self.x, self.y))
+    def desenhar(self, screen):
+        screen.blit(self.sprites[self.frame_atual], (self.x, self.y))

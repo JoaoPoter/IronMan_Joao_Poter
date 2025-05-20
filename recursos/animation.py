@@ -1,7 +1,7 @@
 import pygame
 
 class SpriteAnimator:
-    def __init__(self, x, y, sprites, tempo_frame=150):
+    def __init__(self, x, y, sprites, tempo_frame=150): 
         self.x = x
         self.y = y
         self.sprites = sprites

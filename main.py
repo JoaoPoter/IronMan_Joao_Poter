@@ -48,24 +48,18 @@ white = (255,255,255)
 black = (0, 0 ,0 )
 cinza = (100, 100, 100)
 
-than_x = 850
-than_y = 150
+than_x = 750
+than_y = 250
 
 b_n = 0
 start = 0
 
-# Extraindo frames de animações
-extract_frames("assets/than_rock.gif", "assets/frames_thanrock")
-extract_frames("assets/than_handy.gif", "assets/frames_handy")
-
 all_sprites = []
-sprites_rock = carregar_frames("assets/frames_rock", flip_horizontal=True)
-sprites_handy = carregar_frames("assets/frames_handy", flip_horizontal=True)
-sprites_thanrock = carregar_frames("assets/frames_thanrock", flip_horizontal=True)
 
 all_sprites = pygame.sprite.Group()
 rocks = pygame.sprite.Group()
 than_handy = Boss(than_x, than_y, all_sprites, rocks)
+all_sprites.add(than_handy)
 
 def menu(start, b_n, pause):
     dark_overlay = pygame.Surface(screen.get_size())
@@ -148,7 +142,7 @@ def game():
     x_far = 0
     x_middle = 0
     x_near = 0
-    air_resistance = 10
+    air_resistance = 15
     debug_mode = False
     char_x = 100    
     char_y = 300
@@ -194,8 +188,7 @@ def game():
                 f"Posição do Personagem: ({char_x}, {char_y})",
                 f"Movimento do Personagem: ({move_x}, {move_y})",
                 #f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
-                f"posição thanos: ({than_handy.x}, {than_handy.y})"
-            ]
+                ]
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))
                 screen.blit(text, (10, 10 + i * 20))

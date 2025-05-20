@@ -27,6 +27,7 @@ spr_middle = pygame.image.load("assets/mid.png")
 spr_near = pygame.image.load("assets/front.png")
 spr_dead = pygame.image.load("assets/fundoDead.png")
 spr_than = pygame.image.load("assets/than.gif")
+spr_head = pygame.image.load("assets/iron_head.png")
 snd_explosion = pygame.mixer.Sound("assets/explosao.wav")
 font_title = pygame.font.Font("assets/Ethnocentric Rg.otf", 50)
 font_menu = pygame.font.Font("assets/Ethnocentric Rg.otf",18)
@@ -34,6 +35,7 @@ font_dead = pygame.font.SysFont("arial",120)
 font_debug = pygame.font.SysFont(None, 16)
 pygame.mixer.music.load("assets/ironsound.mp3")
 
+spr_head = pygame.transform.scale(spr_head, ( 50, 50))
 than_aspect = [spr_than.get_width(), spr_than.get_height()]
 spr_than = pygame.transform.scale(spr_than, (than_aspect[0]*2, than_aspect[1]*2))
 spr_than = pygame.transform.flip(spr_than, True, False)
@@ -56,10 +58,11 @@ start = 0
 
 all_sprites = []
 
+
 all_sprites = pygame.sprite.Group()
 rocks = pygame.sprite.Group()
-than_handy = Boss(than_x, than_y, all_sprites, rocks)
-all_sprites.add(than_handy)
+thanos = Boss(than_x, than_y, all_sprites, rocks)
+all_sprites.add(thanos)
 
 def menu(start, b_n, pause):
     dark_overlay = pygame.Surface(screen.get_size())
@@ -144,14 +147,15 @@ def game():
     x_near = 0
     air_resistance = 15
     debug_mode = False
-    char_x = 100    
-    char_y = 300
+    iron_x = 100    
+    iron_y = 300
     move_x  = 0
     move_y  = 0
     spr_iron = spr_iron_soaring
     pygame.mixer.music.play(-1)
-    char_width = spr_iron_soaring.get_width()
-    char_height = spr_iron_soaring.get_height()
+    iron_width = spr_iron_soaring.get_width()
+    iron_height = spr_iron_soaring.get_height()
+    iron_vida = 3
 
     while True:
 
@@ -173,26 +177,48 @@ def game():
                 pygame.mixer_music.set_volume(0.5)
                 menu(start=0, b_n=2, pause = True)
         
-        char_x, char_y, spr_iron = move_horizontal(char_x, char_y, screen, char_height, char_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
+        iron_x, iron_y, spr_iron = move_horizontal(iron_x, iron_y, screen, iron_height, iron_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
         x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
-        than_handy.update()
-        than_handy.animate()
-            
-        screen.blit(spr_iron, (char_x, char_y) )
+        thanos.update()
+        thanos.animate()
+        
+        player_rect = pygame.Rect(iron_x, iron_y, iron_width, iron_height)
+        thanos_rect = thanos.rect
+
+        screen.blit(spr_iron, (iron_x, iron_y) )
+        if colisao_retangulos(
+        iron_x, iron_y, iron_width, iron_height,
+        thanos_rect.x, thanos_rect.y, thanos_rect.width, thanos_rect.height
+        ):
+            dead()
+            break
+        for rock in rocks:
+            if player_rect.colliderect(rock.rect):
+                if not rock.exploding:
+                    rock.explodir()
+                    iron_vida -= 1
+                    print(f"Vida: {iron_vida}")
+                    #snd_explosion.play()
+                if iron_vida <= 0:
+                    dead()
+                    break
+                break
 
         if debug_mode:
             debug_lines = [
                 f"FPS: {clock.get_fps()}",
-                f"Posição do Personagem: ({char_x}, {char_y})",
+                f"Posição do Personagem: ({iron_x}, {iron_y})",
                 f"Movimento do Personagem: ({move_x}, {move_y})",
-                #f"Colisão: {colisao_retangulos(char_x, char_y, char_width, char_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
+                #f"Colisão: {colisao_retangulos(iron_x, iron_y, iron_width, iron_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
                 ]
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))
                 screen.blit(text, (10, 10 + i * 20))
-
+        
+        for i in range(iron_vida):
+            screen.blit(spr_head, (10+i*50, 10))
         all_sprites.update()
         all_sprites.draw(screen)
 
@@ -214,6 +240,6 @@ def dead():
     screen.fill(white)
     screen.blit(spr_dead, (0,0) )
 
-    menu(start=0, b_n=2)
+    menu(start=0, b_n=2, pause= True)
 
 menu(start=1, b_n=2, pause = True)

@@ -33,9 +33,9 @@ class Boss(pygame.sprite.Sprite):
             self.direction = random.choice([-1, 0, 1])
             self.y = self.rect.y
 
-            if self.direction == -1 and self.rect.y <= 80:
+            if self.direction == -1 and self.rect.y <= 120:
                 self.direction = 1
-            elif self.direction == 1 and self.rect.y >= 400:
+            elif self.direction == 1 and self.rect.y >= 230:
                 self.direction = -1
                 
             print(f"Y: {self.rect.y}")
@@ -53,7 +53,7 @@ class Boss(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.animation_timer >= 9:  # velocidade da animação
+        if self.animation_timer >= 6:  # velocidade da animação
             self.animation_index += 1
             self.animation_timer = 0
             frames = self.animations[self.state]
@@ -69,4 +69,3 @@ class Boss(pygame.sprite.Sprite):
         rock = Rock(self.rect.left, self.rect.centery)
         self.all_sprites.add(rock)
         self.rocks.add(rock)
-

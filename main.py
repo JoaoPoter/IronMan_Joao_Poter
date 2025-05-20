@@ -2,7 +2,7 @@ import pygame, random, time
 from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, carregar_frames
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
-import sys
+from thanos import Boss
 
 pygame.init()
 inicializarBancoDeDados()
@@ -48,20 +48,24 @@ white = (255,255,255)
 black = (0, 0 ,0 )
 cinza = (100, 100, 100)
 
-than_x = 650
+than_x = 850
 than_y = 150
 
 b_n = 0
 start = 0
 
+# Extraindo frames de animações
 extract_frames("assets/than_rock.gif", "assets/frames_thanrock")
 extract_frames("assets/than_handy.gif", "assets/frames_handy")
 
-sprites = carregar_frames("assets/frames_handy")
+all_sprites = []
+sprites_rock = carregar_frames("assets/frames_rock", flip_horizontal=True)
+sprites_handy = carregar_frames("assets/frames_handy", flip_horizontal=True)
+sprites_thanrock = carregar_frames("assets/frames_thanrock", flip_horizontal=True)
 
-sprites = carregar_frames("assets/frames_handy")
-
-than_handy = SpriteAnimator(than_x, than_y, sprites, tempo_frame=150)
+all_sprites = pygame.sprite.Group()
+rocks = pygame.sprite.Group()
+than_handy = Boss(than_x, than_y, all_sprites, rocks)
 
 def menu(start, b_n, pause):
     dark_overlay = pygame.Surface(screen.get_size())
@@ -146,7 +150,7 @@ def game():
     x_near = 0
     air_resistance = 10
     debug_mode = False
-    char_x = 100
+    char_x = 100    
     char_y = 300
     move_x  = 0
     move_y  = 0
@@ -154,6 +158,7 @@ def game():
     pygame.mixer.music.play(-1)
     char_width = spr_iron_soaring.get_width()
     char_height = spr_iron_soaring.get_height()
+
     while True:
 
         for evento in pygame.event.get():
@@ -178,8 +183,8 @@ def game():
 
         x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
-        than_handy.atualizar()
-        than_handy.desenhar(screen)
+        than_handy.update()
+        than_handy.animate()
             
         screen.blit(spr_iron, (char_x, char_y) )
 
@@ -194,6 +199,9 @@ def game():
             for i, line in enumerate(debug_lines):
                 text = font_debug.render(line, True, (black))
                 screen.blit(text, (10, 10 + i * 20))
+
+        all_sprites.update()
+        all_sprites.draw(screen)
 
         pygame.display.update()
         clock.tick(50)

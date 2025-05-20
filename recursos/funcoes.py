@@ -67,7 +67,7 @@ def move_horizontal(obj_x, obj_y, screen, obj_height, obj_width, move_x, move_y,
     if obj_x <= 0 and move_x <= 0:
         move_x = 0
         air_resistance = 0
-    elif obj_x >= screen.get_width() - obj_width - 1 and move_x >= 0:
+    elif obj_x >= screen.get_width() - obj_width -1 and move_x >= 0:
         move_x = 0
     if obj_y <= 0 and move_y <= 0:
         move_y = 0
@@ -109,12 +109,26 @@ def fade_text(texto, fonte, cor, pos, screen, fade_in=True, duracao=1000):
         pygame.display.update()
         clock.tick(60)
 
-def carregar_frames(pasta):
+def carregar_frames(pasta, flip_horizontal=False):
     frames = []
     arquivos = sorted(os.listdir(pasta))
     for arquivo in arquivos:
         if arquivo.endswith(".png"):
             caminho = os.path.join(pasta, arquivo)
             imagem = pygame.image.load(caminho).convert_alpha()
+            if flip_horizontal:
+                imagem = pygame.transform.flip(imagem, True, False)
             frames.append(imagem)
     return frames
+
+class Rock(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load("assets/frames_rock/frame_001.png").convert_alpha()
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = -7  # Direita para esquerda
+
+    def update(self):
+        self.rect.x += self.speed
+        if self.rect.right < 0:
+            self.kill()

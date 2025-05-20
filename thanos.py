@@ -53,11 +53,7 @@ class Boss(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.state == "attack":
-            self.rect.x = self.attack_x
-        else:
-            self.rect.x = self.attack_x + 208
-        if self.animation_timer >= 8:  # velocidade da animação
+        if self.animation_timer >= 9:  # velocidade da animação
             self.animation_index += 1
             self.animation_timer = 0
             frames = self.animations[self.state]

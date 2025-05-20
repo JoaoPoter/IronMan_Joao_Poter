@@ -126,7 +126,7 @@ class Rock(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.image.load("assets/frames_rock/frame_001.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.image = pygame.transform.scale(self.image, (150, 130))
         self.rect = self.image.get_rect(center=(x, y))
         self.speed = -14  # Direita para esquerda
 

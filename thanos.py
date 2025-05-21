@@ -13,6 +13,7 @@ class Boss(pygame.sprite.Sprite):
         self.animations = {
             "idle": carregar_frames("assets/frames_handy", flip_horizontal=True),
             "attack": carregar_frames("assets/frames_thanrock", flip_horizontal=False, scale=[500, 400]),
+            "damage": carregar_frames("assets/frames_block", flip_horizontal=False, scale=[500,400])
         }
         self.state = "idle"
         self.image = self.animations[self.state][0]
@@ -21,6 +22,8 @@ class Boss(pygame.sprite.Sprite):
         self.animation_index = 0
         self.animation_timer = 0
 
+        self.max_hp = 50
+        self.hp = self.max_hp
         self.attack_cooldown = random.randint(2000, 4000)  # 2 a 4 segundos
         self.last_attack_time = pygame.time.get_ticks()
 
@@ -38,8 +41,6 @@ class Boss(pygame.sprite.Sprite):
             elif self.direction == 1 and self.rect.y >= 230:
                 self.direction = -1
                 
-            print(f"Y: {self.rect.y}")
-            print(f"Direção: {self.direction}")
             self.move_timer = current_time
         self.rect.y += self.direction * 4
         
@@ -69,3 +70,13 @@ class Boss(pygame.sprite.Sprite):
         rock = Rock(self.rect.left, self.rect.centery)
         self.all_sprites.add(rock)
         self.rocks.add(rock)
+    
+    def tomar_dano(self):
+        self.hp -= 1
+        print(f"hp: {self.hp}")
+        if self.hp <= 0:
+            self.morrer()
+
+    def morrer(self):
+        
+        self.kill()

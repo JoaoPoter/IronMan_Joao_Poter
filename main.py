@@ -1,5 +1,5 @@
 import pygame, random, time
-from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, carregar_frames
+from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
 from thanos import Boss
@@ -53,14 +53,16 @@ cinza = (100, 100, 100)
 than_x = 750
 than_y = 250
 
+extract_frames("assets/than_block.gif", "assets/frames_block")
+
 b_n = 0
 start = 0
 
 all_sprites = []
 
-
 all_sprites = pygame.sprite.Group()
 rocks = pygame.sprite.Group()
+projectiles = pygame.sprite.Group()
 thanos = Boss(than_x, than_y, all_sprites, rocks)
 all_sprites.add(thanos)
 
@@ -158,7 +160,6 @@ def game():
     iron_vida = 3
 
     while True:
-
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
@@ -167,7 +168,6 @@ def game():
                     debug_mode = False
                 else:
                     debug_mode = True
-                    print("Debug Mode Ativado")
                     if evento.type == pygame.KEYUP:
                         if evento.key == pygame.K_F3:
                             debug_mode = False[
@@ -176,7 +176,11 @@ def game():
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE:
                 pygame.mixer_music.set_volume(0.5)
                 menu(start=0, b_n=2, pause = True)
-        
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_e:
+                new_proj = Rocket(iron_x-10,iron_y-10)
+                projectiles.add(new_proj)
+                all_sprites.add(new_proj)
+                    
         iron_x, iron_y, spr_iron = move_horizontal(iron_x, iron_y, screen, iron_height, iron_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
         x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
@@ -194,14 +198,27 @@ def game():
         ):
             dead()
             break
+        
+        for proj in projectiles:
+            if thanos_rect.colliderect(proj.rect):
+                if not proj.exploding:
+                    proj.explodir()
+                    print("aaaaaaaaaAAAAAAAAAAAA")
+                    thanos.tomar_dano()
+                    #snd_explosion.play()
+            if iron_vida <= 0:
+                dead()
+                break
+            break
+            
         for rock in rocks:
             if player_rect.colliderect(rock.rect):
                 if not rock.exploding:
                     rock.explodir()
                     iron_vida -= 1
-                    print(f"Vida: {iron_vida}")
                     #snd_explosion.play()
                 if iron_vida <= 0:
+                    iron_vida = 3
                     dead()
                     break
                 break
@@ -219,6 +236,7 @@ def game():
         
         for i in range(iron_vida):
             screen.blit(spr_head, (10+i*50, 10))
+        
         all_sprites.update()
         all_sprites.draw(screen)
 
@@ -228,6 +246,7 @@ def game():
 def dead():
     pygame.mixer.music.stop()
     pygame.mixer.Sound.play(snd_explosion)
+    
 
     # Adiciona o log das partidas no Listbox
     '''log_partidas = open("base.atitus", "r").read()

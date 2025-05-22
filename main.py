@@ -53,8 +53,6 @@ cinza = (100, 100, 100)
 than_x = 750
 than_y = 250
 
-extract_frames("assets/than_block.gif", "assets/frames_block")
-
 b_n = 0
 start = 0
 
@@ -144,6 +142,8 @@ def menu(start, b_n, pause):
         clock.tick(50)
 
 def game():
+    rocket_cooldown = 2000
+    last_rocket_time = 0
     x_far = 0
     x_middle = 0
     x_near = 0
@@ -160,6 +160,7 @@ def game():
     iron_vida = 3
 
     while True:
+        current_time = pygame.time.get_ticks()
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
@@ -177,9 +178,11 @@ def game():
                 pygame.mixer_music.set_volume(0.5)
                 menu(start=0, b_n=2, pause = True)
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_e:
-                new_proj = Rocket(iron_x-10,iron_y-10)
-                projectiles.add(new_proj)
-                all_sprites.add(new_proj)
+                if current_time - last_rocket_time > rocket_cooldown:
+                    last_rocket_time = current_time
+                    new_proj = Rocket(iron_x+100,iron_y+30)
+                    projectiles.add(new_proj)
+                    all_sprites.add(new_proj)
                     
         iron_x, iron_y, spr_iron = move_horizontal(iron_x, iron_y, screen, iron_height, iron_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
@@ -198,9 +201,19 @@ def game():
         ):
             dead()
             break
+
+        head_height = thanos_rect.height // 3
+        thanos_head_rect = pygame.Rect(
+        thanos.rect.x,
+        thanos.rect.y+20,
+        thanos.rect.width,
+        head_height
+        )
         
         for proj in projectiles:
-            if thanos_rect.colliderect(proj.rect):
+            if thanos_head_rect.colliderect(proj.rect):
+                if debug_mode:
+                    pygame.draw.rect(screen, (255, 0, 0), proj.rect, 2)
                 if not proj.exploding:
                     proj.explodir()
                     print("aaaaaaaaaAAAAAAAAAAAA")
@@ -212,7 +225,10 @@ def game():
             break
             
         for rock in rocks:
-            if player_rect.colliderect(rock.rect):
+            if colisao_retangulos(
+            iron_x, iron_y, iron_width, iron_height,
+            rock.rect.x-30, rock.rect.y, rock.rect.width, rock.rect.height
+            ):
                 if not rock.exploding:
                     rock.explodir()
                     iron_vida -= 1
@@ -239,6 +255,7 @@ def game():
         
         all_sprites.update()
         all_sprites.draw(screen)
+
 
         pygame.display.update()
         clock.tick(50)

@@ -131,7 +131,7 @@ class Rock(pygame.sprite.Sprite):
         }
         self.state = "fly" 
         self.image = self.frames[self.state][0]
-        self.speed = -30
+        self.speed = -10
         self.rect = self.image.get_rect(center=(x, y))
 
         self.animation_index = 0
@@ -173,7 +173,7 @@ class Rocket(pygame.sprite.Sprite):
         self.state = "rocket" 
         self.image = self.frames[self.state][0]
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 40
+        self.speed = 20
 
         self.animation_index = 0
         self.animation_timer = 0

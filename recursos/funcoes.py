@@ -41,21 +41,21 @@ def backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, w
     screen.blit(spr_far, (0,0) )
 
     x_far = x_far - 0.2
-    x_middle = x_middle - 0.7
-    x_near = x_near - 3
+    x_middle = x_middle - 3
+    x_near = x_near - 4
 
-    if x_far <= -800: x_far = 0
-    if x_middle <= -800: x_middle = 0
-    if x_near <= -800: x_near = 0
+    if x_far <= -1200: x_far = 0
+    if x_middle <= -1200: x_middle = 0
+    if x_near <= -1200: x_near = 0
 
     screen.blit(spr_far, (x_far, 0))
-    screen.blit(spr_far, (x_far + 800, 0))
+    screen.blit(spr_far, (x_far + 1200, 0))
 
     screen.blit(spr_middle, (x_middle, 0))
-    screen.blit(spr_middle, (x_middle + 800, 0))
+    screen.blit(spr_middle, (x_middle + 1200, 0))
 
     screen.blit(spr_near, (x_near, 0))
-    screen.blit(spr_near, (x_near + 800, 0))
+    screen.blit(spr_near, (x_near + 1200, 0))
     
     return x_far, x_middle, x_near
 
@@ -131,7 +131,7 @@ class Rock(pygame.sprite.Sprite):
         }
         self.state = "fly" 
         self.image = self.frames[self.state][0]
-        self.speed = -10
+        self.speed = -15
         self.rect = self.image.get_rect(center=(x, y))
 
         self.animation_index = 0
@@ -173,7 +173,7 @@ class Rocket(pygame.sprite.Sprite):
         self.state = "rocket" 
         self.image = self.frames[self.state][0]
         self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 20
+        self.speed = 30
 
         self.animation_index = 0
         self.animation_timer = 0
@@ -181,7 +181,7 @@ class Rocket(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.speed
-        if self.rect.right > 1400:
+        if self.rect.right > 1200:
             self.kill()
         self.animate()
 

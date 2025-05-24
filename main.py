@@ -1,5 +1,5 @@
 import pygame, random, time
-from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, carregar_frames, move_horizontal, fade_text, Rocket
+from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from recursos.animation import SpriteAnimator
 from recursos.gif import extract_frames
 from thanos import Boss
@@ -24,8 +24,8 @@ spr_iron_soaring = pygame.image.load("assets/iron_soaring.png")
 spr_iron_boosting = pygame.image.load("assets/iron_boosting.png")
 spr_iron_bg = pygame.image.load("assets/iron_start.jpg")
 spr_far = pygame.image.load("assets/back.png")
-spr_middle = pygame.image.load("assets/mid.png")
-spr_near = pygame.image.load("assets/front.png")
+spr_middle = pygame.image.load("assets/middle.png")
+spr_near = pygame.image.load("assets/near.png")
 spr_dead = pygame.image.load("assets/iron_dead.jpeg")
 spr_than = pygame.image.load("assets/than.gif")
 spr_head = pygame.image.load("assets/iron_head.png")
@@ -36,13 +36,14 @@ font_dead = pygame.font.SysFont("arial",120)
 font_debug = pygame.font.SysFont(None, 16)
 musicas = [
     "assets/iron_2012.wav",
-    "assets/ironsound.mp3",
+    "assets/dragoes.wav",
     "assets/Game_Over.mp3"
 ]
 
 music_i = 0
 
-spr_head = pygame.transform.scale(spr_head, ( 50, 50))
+spr_head = pygame.transform.scale(spr_head, ( 60, 60))
+spr_head.set_alpha(220)
 than_aspect = [spr_than.get_width(), spr_than.get_height()]
 spr_than = pygame.transform.scale(spr_than, (than_aspect[0]*2, than_aspect[1]*2))
 spr_than = pygame.transform.flip(spr_than, True, False)
@@ -65,8 +66,6 @@ start = 0
 
 all_sprites = []
 
-background_frames = carregar_frames("assets/frames_background", flip_horizontal=False, scale=(1200,740))
-
 all_sprites = pygame.sprite.Group()
 rocks = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
@@ -75,7 +74,7 @@ all_sprites.add(thanos)
 
 def tocar_musica(index):
     pygame.mixer.music.load(index)
-    pygame.mixer.music.play()
+    pygame.mixer.music.play(-1)
 
 def menu(menu_type, b_n):
     """
@@ -177,11 +176,12 @@ def menu(menu_type, b_n):
 def game():
     rocket_cooldown = 2000
     last_rocket_time = 0
-    frame_index = 0
-    frame_timer = 0
-    frame_delay = 200
     air_resistance = 16
     debug_mode = False
+    x_far = 0
+    x_middle = 0
+    x_near = 0
+    
     iron_x = 100    
     iron_y = 300
     move_x  = 0
@@ -218,12 +218,8 @@ def game():
                     
         iron_x, iron_y, spr_iron = move_horizontal(iron_x, iron_y, screen, iron_height, iron_width, move_x, move_y, air_resistance, spr_iron, spr_iron_boosting, spr_iron_soaring)
 
-        current_time = pygame.time.get_ticks()
-        if current_time - frame_timer >= frame_delay:
-            frame_index = (frame_index + 1) % len(background_frames)
-            frame_timer = current_time
+        x_far, x_middle, x_near = backGround(x_far, x_middle, x_near, screen, spr_far, spr_middle, spr_near, white)
 
-        screen.blit(background_frames[frame_index], (0, 0))
 
         thanos.update()
         thanos.animate()
@@ -253,7 +249,7 @@ def game():
                     pygame.draw.rect(screen, (255, 0, 0), proj.rect, 2)
                 if not proj.exploding:
                     proj.explodir()
-                    thanos.tomar_dano()
+                    thanos.tomar_dano(screen)
                     #snd_explosion.play()
             if iron_vida <= 0:
                 thanos.morrer
@@ -285,11 +281,14 @@ def game():
                 #f"Colisão: {colisao_retangulos(iron_x, iron_y, iron_width, iron_height, rocket_x, rocket_y, rocket_width, rocket_height)}",
                 ]
             for i, line in enumerate(debug_lines):
-                text = font_debug.render(line, True, (black))
-                screen.blit(text, (10, 10 + i * 20))
+                text = font_debug.render(line, True, (white))
+                screen.blit(text, (10, 600 + i * 20))
         
         for i in range(iron_vida):
-            screen.blit(spr_head, (10+i*50, 10))
+            screen.blit(spr_head, (15+i*50, 15))
+
+        texto = font_menu.render(f"Timer: {current_time/1000}", True, (white))
+        screen.blit(texto, (535, 15))
         
         all_sprites.update()
         all_sprites.draw(screen)

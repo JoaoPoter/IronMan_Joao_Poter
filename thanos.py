@@ -23,7 +23,7 @@ class Boss(pygame.sprite.Sprite):
         self.animation_index = 0
         self.animation_timer = 0
 
-        self.max_hp = 2
+        self.max_hp = 1
         self.hp = self.max_hp
         self.attack_cooldown = random.randint(4000, 6000)  # 2 a 4 segundos
         self.last_attack_time = pygame.time.get_ticks()
@@ -56,7 +56,7 @@ class Boss(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.animation_timer >= 15:  # velocidade da animação
+        if self.animation_timer >= 6:  # velocidade da animação
             self.animation_index += 1
             self.animation_timer = 0
             frames = self.animations[self.state]
@@ -77,12 +77,12 @@ class Boss(pygame.sprite.Sprite):
         self.rocks.add(rock)
     
     def morrer(self):
-        self.kill()
+        self.kill
         
-    def tomar_dano(self):
+    def tomar_dano(self, screen):
         self.hp -= 1
         self.state = "damage"
 
         if self.hp <= 0:
-            end_game()
+            end_game(screen)
 

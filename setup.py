@@ -1,5 +1,3 @@
-
-# pip install cx_freeze
 import cx_Freeze
 executaveis = [ 
                cx_Freeze.Executable(script="feito.py", icon="assets/icone.ico") ]

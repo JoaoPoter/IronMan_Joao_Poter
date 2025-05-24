@@ -1,4 +1,4 @@
-import os, time, json, pygame
+import os, json, pygame
 from datetime import datetime
 
 def inicializarBancoDeDados():
@@ -10,7 +10,6 @@ def inicializarBancoDeDados():
         banco = open("base.atitus","w")
     
 def escreverDados(nome, pontos):
-    # INI - inserindo no arquivo
     banco = open("base.atitus","r")
     dados = banco.read()
     banco.close()

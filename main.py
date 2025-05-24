@@ -77,10 +77,6 @@ def tocar_musica(index):
     pygame.mixer.music.play(-1)
 
 def menu(menu_type, b_n):
-    """
-    menu_type: 'start', 'pause', 'death'
-    b_n: quantidade de botões
-    """
     tocar_musica(musicas[0])
     dark_overlay = pygame.Surface(screen.get_size())
     dark_overlay.fill((0, 0, 0))
@@ -106,7 +102,9 @@ def menu(menu_type, b_n):
     elif menu_type == 'death':
         screen.blit(dark_overlay, (0, 0))
         tocar_musica(musicas[2])
-        pygame.mixer.Sound.play(snd_explosion)
+        
+        
+        print(f"{pygame.mixer_music.get_volume}")
         fade_text("Game Over", font_title, cinza, (353, 143), screen, fade_in=True, duracao=200)
         fade_text("Game Over", font_title, white, (350, 140), screen, fade_in=True, duracao=600)
     
@@ -249,7 +247,7 @@ def game():
                     pygame.draw.rect(screen, (255, 0, 0), proj.rect, 2)
                 if not proj.exploding:
                     proj.explodir()
-                    thanos.tomar_dano(screen)
+                    thanos.tomar_dano()
                     #snd_explosion.play()
             if iron_vida <= 0:
                 thanos.morrer

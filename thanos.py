@@ -23,7 +23,7 @@ class Boss(pygame.sprite.Sprite):
         self.animation_index = 0
         self.animation_timer = 0
 
-        self.max_hp = 1
+        self.max_hp = 13
         self.hp = self.max_hp
         self.attack_cooldown = random.randint(4000, 6000)  # 2 a 4 segundos
         self.last_attack_time = pygame.time.get_ticks()
@@ -79,10 +79,11 @@ class Boss(pygame.sprite.Sprite):
     def morrer(self):
         self.kill
         
-    def tomar_dano(self, screen):
+    def tomar_dano(self):
         self.hp -= 1
         self.state = "damage"
 
         if self.hp <= 0:
-            end_game(screen)
+            pygame.mixer_music.stop
+            end_game()
 

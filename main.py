@@ -1,6 +1,7 @@
 import pygame
 from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from thanos import Boss
+from tutorial import Tutorial
 
 pygame.init()
 pygame.mixer.init()
@@ -62,6 +63,8 @@ rocks = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
 thanos = Boss(than_x, than_y, all_sprites, rocks)
 all_sprites.add(thanos)
+
+tutorial = Tutorial(screen)
 
 def tocar_musica(index):
     pygame.mixer.music.load(index)
@@ -151,7 +154,9 @@ def menu(menu_type, b_n):
                     if menu_type in ('start', 'death'):
                         pygame.mixer_music.set_volume(1)
                         pygame.mixer_music.fadeout(2)
-                        game()
+                        tutorial.draw(screen, spr_iron_bg)
+                        if tutorial.update():
+                            game()
                     else:
                         pygame.mixer_music.set_volume(1)
                         return True

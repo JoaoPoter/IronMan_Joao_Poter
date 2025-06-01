@@ -1,7 +1,8 @@
 import pygame
 from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from thanos import Boss
-from tutorial import Tutorial
+import speech_recognition as sr
+from rapidfuzz import fuzz
 
 pygame.init()
 pygame.mixer.init()
@@ -17,21 +18,22 @@ pygame.display.set_icon(icon)
 spr_iron_soaring = pygame.image.load("assets/iron_soaring.png")
 spr_iron_boosting = pygame.image.load("assets/iron_boosting.png")
 spr_iron_bg = pygame.image.load("assets/iron_start.jpg")
-spr_far = pygame.image.load("assets/back.png")
-spr_middle = pygame.image.load("assets/middle.png")
-spr_near = pygame.image.load("assets/near.png")
+spr_far = pygame.image.load("assets/background/back.png")
+spr_middle = pygame.image.load("assets/background/middle.png")
+spr_near = pygame.image.load("assets/background/near.png")
 spr_dead = pygame.image.load("assets/iron_dead.jpeg")
-spr_than = pygame.image.load("assets/than.gif")
+spr_than = pygame.image.load("assets/.gifs/than.gif")
 spr_head = pygame.image.load("assets/iron_head.png")
-snd_explosion = pygame.mixer.Sound("assets/explosao.wav")
-font_title = pygame.font.Font("assets/Ethnocentric Rg.otf", 50)
-font_menu = pygame.font.Font("assets/Ethnocentric Rg.otf",18)
-font_dead = pygame.font.SysFont("arial",120)
+snd_explosion = pygame.mixer.Sound("assets/sounds/explosao.wav")
+font_title = pygame.font.Font("assets/texts/Ethnocentric Rg.otf", 50)
+font_menu = pygame.font.Font("assets/texts/Ethnocentric Rg.otf",18)
+font_dead = pygame.font.SysFont("arial",120)    
 font_debug = pygame.font.SysFont(None, 16)
 musicas = [
-    "assets/iron_2012.wav",
-    "assets/dragoes.wav",
-    "assets/Game_Over.mp3"
+    "assets/sounds/iron_2012.wav",
+    "assets/sounds/dragoes.wav",
+    "assets/sounds/Game_Over.mp3",
+    "assets/sounds/type_sound.mp3"
 ]
 
 music_i = 0
@@ -56,6 +58,9 @@ than_y = 250
 
 b_n = 0
 start = 0
+run_time = 0
+recognizer = sr.Recognizer()
+expected_phrase = "I am "
 
 all_sprites = []
 all_sprites = pygame.sprite.Group()
@@ -64,9 +69,8 @@ projectiles = pygame.sprite.Group()
 thanos = Boss(than_x, than_y, all_sprites, rocks)
 all_sprites.add(thanos)
 
-tutorial = Tutorial(screen)
-
 def tocar_musica(index):
+    pygame.mixer_music.fadeout(100)
     pygame.mixer.music.load(index)
     pygame.mixer.music.play(-1)
 
@@ -79,9 +83,27 @@ def draw_button(screen, image, text, font, pos, button_size, offset, border_radi
     return b_rect
 
 def menu(menu_type, b_n):
-    spr_start_b = pygame.image.load("assets/start_b.png")
+    font_tutorial = pygame.font.Font("assets/texts/cour.ttf", 30)
+    clock = pygame.time.Clock()
+
+    # Texto e cores
+    text = (
+    "The Avengers were prepared to attack Thanos, but when Iron Man\n"
+    "whas on his way to the battle fild, Thanos surprised him\n"
+    "and now they will fight 'til death!\n"
+    "\n"
+    "\n"
+    "How to play:\n"
+    "Use the 'W' and 'S' keys to move up and down.\n"
+    "Press 'Space' to boost forward.\n"
+    "Avoid Thano's rocks and shoot rockets in his face with 'E'.\n"
+    "Press 'ESC' to pause the game.\n"
+    "To start the game say 'I am Iron Man'.\n"
+    "Good luck!"
+)
+    spr_start_b = pygame.image.load("assets/texts/start_b.png")
     spr_start_b = pygame.transform.scale(spr_start_b, (300, 50))
-    spr_quit_b = pygame.image.load("assets/quit_b.png")
+    spr_quit_b = pygame.image.load("assets/texts/quit_b.png")
     spr_quit_b = pygame.transform.scale(spr_quit_b, (300, 50))
 
     dark_overlay = pygame.Surface(screen.get_size())
@@ -92,7 +114,8 @@ def menu(menu_type, b_n):
     txt_pos = [300, 230]
     button_size = (b_width, b_height)
     buttons = []
-
+    finished_typing = False
+    
     menu_config = {
         'start': {
             'background': lambda: (screen.fill(white), screen.blit(spr_iron_bg, (0, 0))),
@@ -152,11 +175,66 @@ def menu(menu_type, b_n):
             elif evento.type == pygame.MOUSEBUTTONUP:
                 if buttons[0].collidepoint(evento.pos):
                     if menu_type in ('start', 'death'):
-                        pygame.mixer_music.set_volume(1)
-                        pygame.mixer_music.fadeout(2)
-                        tutorial.draw(screen, spr_iron_bg)
-                        if tutorial.update():
-                            game()
+                        type = pygame.mixer.Sound(musicas[3])
+                        type.set_volume(0.5)
+                        text_color = (0, 240, 0)
+                        bg_color = (0, 0, 0)
+                        current_text = ''
+                        text_index = 0
+                        type_speed = 50
+                        last_update = pygame.time.get_ticks()
+                        type.play(2)
+                        tutorial_running = True
+                        while tutorial_running:
+                            screen.fill(bg_color)
+                            pygame.mixer_music.set_volume(0.6)
+
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    pygame.quit()
+                                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                                    finished_typing = True
+                                    current_text = text
+                            now = pygame.time.get_ticks()
+                            if now - last_update > type_speed:
+                                if text_index < len(text):
+                                    current_text += text[text_index]
+                                    text_index += 1
+                                    last_update = now
+                                else:
+                                    finished_typing = True
+                                    type.stop()
+                            lines = current_text.split('\n')
+                            y = 100
+                            for line in lines:
+                                rendered_line = font_tutorial.render(line, True, text_color)
+                                screen.blit(rendered_line, (70, y))
+                                y += font_tutorial.get_height() + 5
+                                
+                            pygame.display.flip()
+                            clock.tick(60)
+                            if finished_typing:
+                                print("Reconhecendo...")
+                                type.stop()
+                                with sr.Microphone() as source:
+                                    recognizer.adjust_for_ambient_noise(source)
+                                    try:
+                                        audio = recognizer.listen(source, phrase_time_limit=5)
+                                        recognized_text = recognizer.recognize_google(audio)
+                                        similarity = fuzz.ratio(recognized_text.lower(), expected_phrase.lower())
+                                        if similarity > 40:
+                                            print("✅ Sucesso! Você é o Homem de Ferro.")
+                                            tutorial_running = False
+                                            type.fadeout(10)
+                                            game()
+                                        else:
+                                            print("❌ Não foi parecido o bastante. Tente novamente.")
+                                        
+                                    except sr.UnknownValueError:
+                                        print("❗ Não foi possível entender o áudio.")
+                                    except sr.RequestError as e:
+                                        print(f"❗ Erro no serviço de reconhecimento: {e}")
+
                     else:
                         pygame.mixer_music.set_volume(1)
                         return True
@@ -187,10 +265,11 @@ def game():
     iron_width = spr_iron_soaring.get_width()
     iron_height = spr_iron_soaring.get_height()
     iron_vida = 3
+    run_time = pygame.time.get_ticks()
     tocar_musica(musicas[1])
-
     while True:
         current_time = pygame.time.get_ticks()
+        run_timer = current_time - run_time
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
@@ -265,7 +344,7 @@ def game():
         for i in range(iron_vida):
             screen.blit(spr_head, (15+i*50, 15))
 
-        texto = font_menu.render(f"Timer: {current_time/1000}", True, (white))
+        texto = font_menu.render(f"Timer: {run_timer/1000}", True, (white))
         screen.blit(texto, (535, 15))
         
         all_sprites.update()
@@ -273,7 +352,7 @@ def game():
 
 
         pygame.display.update()
-        clock.tick(50)
+        clock.tick(60)
 
 def dead():
     screen.fill(white)

@@ -6,11 +6,9 @@ from end_game import end_game
 class Boss(pygame.sprite.Sprite):
     def __init__(self, x, y, all_sprites, rocks):
         super().__init__()
-        # Store sprite groups
         self.all_sprites = all_sprites
         self.rocks = rocks
         self.attack_x = x - 208
-        # Fix image loading paths
         self.animations = {
             "idle": carregar_frames("assets/frames_handy", flip_horizontal=True),
             "attack": carregar_frames("assets/frames_thanrock", flip_horizontal=False, scale=[500, 400]),
@@ -23,13 +21,13 @@ class Boss(pygame.sprite.Sprite):
         self.animation_index = 0
         self.animation_timer = 0
 
-        self.max_hp = 7
+        self.max_hp = 13
         self.hp = self.max_hp
-        self.attack_cooldown = random.randint(4000, 6000)  # 2 a 4 segundos
+        self.attack_cooldown = random.randint(4000, 6000)
         self.last_attack_time = pygame.time.get_ticks()
 
         self.move_timer = pygame.time.get_ticks()
-        self.direction = 1  # 1 = descer, -1 = subir
+        self.direction = 1
         self.anim_speed = 6
 
     def update(self):
@@ -56,7 +54,7 @@ class Boss(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.animation_timer >= 6:  # velocidade da animação
+        if self.animation_timer >= 6:
             self.animation_index += 1
             self.animation_timer = 0
             frames = self.animations[self.state]

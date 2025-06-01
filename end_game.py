@@ -3,7 +3,7 @@ import pygame
 import sys
 
 def end_game():
-    pygame.mixer_music.load('assets/final.wav')
+    pygame.mixer_music.load('assets/sounds/final.wav')
     video_path = "assets/final_audio.mp4"
     cap = cv2.VideoCapture(video_path)
 

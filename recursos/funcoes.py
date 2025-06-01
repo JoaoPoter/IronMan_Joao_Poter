@@ -100,7 +100,7 @@ def fade_text(texto, fonte, cor, pos, screen, fade_in=True, duracao=1000):
         alpha = int(progresso * 255) if fade_in else int((1 - progresso) * 255)
         alpha = max(0, min(255, alpha))
 
-        alpha_surface.fill((255, 255, 255, 0))  # limpa
+        alpha_surface.fill((255, 255, 255, 0))
         alpha_surface.blit(texto_surface, (0, 0))
         alpha_surface.set_alpha(alpha)
 
@@ -145,7 +145,7 @@ class Rock(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.animation_timer >= 3:  # controle da velocidade da animação
+        if self.animation_timer >= 3:
             self.animation_timer = 0
             self.animation_index += 1
             frames = self.frames[self.state]
@@ -186,7 +186,7 @@ class Rocket(pygame.sprite.Sprite):
 
     def animate(self):
         self.animation_timer += 1
-        if self.animation_timer >= 3:  # controle da velocidade da animação
+        if self.animation_timer >= 3:
             self.animation_timer = 0
             self.animation_index += 1
             frames = self.frames[self.state]

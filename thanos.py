@@ -21,7 +21,7 @@ class Boss(pygame.sprite.Sprite):
         self.animation_index = 0
         self.animation_timer = 0
 
-        self.max_hp = 13
+        self.max_hp = 1
         self.hp = self.max_hp
         self.attack_cooldown = random.randint(4000, 6000)
         self.last_attack_time = pygame.time.get_ticks()

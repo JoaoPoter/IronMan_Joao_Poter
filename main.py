@@ -1,5 +1,5 @@
-import pygame
-from recursos.funcoes import inicializarBancoDeDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
+import pygame, json
+from recursos.funcoes import inicializarBancoDeDados, escreverDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from thanos import Boss
 import speech_recognition as sr
 from rapidfuzz import fuzz
@@ -18,6 +18,7 @@ pygame.display.set_icon(icon)
 spr_iron_soaring = pygame.image.load("assets/iron_soaring.png")
 spr_iron_boosting = pygame.image.load("assets/iron_boosting.png")
 spr_iron_bg = pygame.image.load("assets/iron_start.jpg")
+spr_i_am = pygame.image.load("assets/i_am.jpg")
 spr_far = pygame.image.load("assets/background/back.png")
 spr_middle = pygame.image.load("assets/background/middle.png")
 spr_near = pygame.image.load("assets/background/near.png")
@@ -48,6 +49,7 @@ spr_far = pygame.transform.scale(spr_far, (aspect_ratio[0], aspect_ratio[1]))
 spr_middle = pygame.transform.scale(spr_middle, (aspect_ratio[0], aspect_ratio[1]))
 spr_near = pygame.transform.scale(spr_near, (aspect_ratio[0], aspect_ratio[1]))
 spr_iron_bg = pygame.transform.scale(spr_iron_bg, (aspect_ratio[0], aspect_ratio[1]))
+spr_i_am = pygame.transform.scale(spr_i_am, (aspect_ratio[0], aspect_ratio[1]))
 spr_dead = pygame.transform.scale(spr_dead, (aspect_ratio[0], aspect_ratio[1]))
 
 white = (255,255,255)
@@ -55,6 +57,7 @@ black = (0, 0 ,0 )
 cinza = (100, 100, 100)
 than_x = 750
 than_y = 250
+nome = ""
 
 b_n = 0
 start = 0
@@ -85,6 +88,7 @@ def draw_button(screen, image, text, font, pos, button_size, offset, border_radi
 def menu(menu_type, b_n):
     font_tutorial = pygame.font.Font("assets/texts/cour.ttf", 30)
     clock = pygame.time.Clock()
+    nickname = ""
 
     # Texto e cores
     text = (
@@ -140,7 +144,15 @@ def menu(menu_type, b_n):
             'title_pos': (350, 140),
             'text_offset': (0, 0, 60, 10),
             'x_offset': 130
-        }
+        },
+        'name': {
+            'background': lambda: (screen.fill(white), screen.blit(spr_i_am, (0, 0))),
+            'music': None,
+            'title': "",
+            'title_pos': (300, 50),
+            'text_offset': (-50, 0, 0, 10),
+            'x_offset': 0
+        }   
     }
 
     config = menu_config[menu_type]
@@ -148,6 +160,7 @@ def menu(menu_type, b_n):
         tocar_musica(config['music'])
     if menu_type == 'pause':
         pygame.mixer_music.set_volume(0.3)
+
     config['background']()
 
     fade_text(config['title'], font_title, cinza, (config['title_pos'][0]+3, config['title_pos'][1]+3), screen, fade_in=True, duracao=200)
@@ -165,6 +178,8 @@ def menu(menu_type, b_n):
         buttons.append(b)
 
     while True:
+        if menu_type == 'name':
+            config['background']()
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
@@ -173,7 +188,9 @@ def menu(menu_type, b_n):
                     if b.collidepoint(evento.pos):
                         pass  # Placeholder
             elif evento.type == pygame.MOUSEBUTTONUP:
-                if buttons[0].collidepoint(evento.pos):
+                if menu_type == 'name':
+                        menu('start', b_n=2)
+                elif buttons[0].collidepoint(evento.pos):
                     if menu_type in ('start', 'death'):
                         type = pygame.mixer.Sound(musicas[3])
                         type.set_volume(0.5)
@@ -214,6 +231,9 @@ def menu(menu_type, b_n):
                             pygame.display.flip()
                             clock.tick(60)
                             if finished_typing:
+                                tutorial_running = False
+                                type.fadeout(10)
+                                game()
                                 print("Reconhecendo...")
                                 type.stop()
                                 with sr.Microphone() as source:
@@ -234,7 +254,6 @@ def menu(menu_type, b_n):
                                         print("❗ Não foi possível entender o áudio.")
                                     except sr.RequestError as e:
                                         print(f"❗ Erro no serviço de reconhecimento: {e}")
-
                     else:
                         pygame.mixer_music.set_volume(1)
                         return True
@@ -244,12 +263,26 @@ def menu(menu_type, b_n):
                 if menu_type == 'pause' and evento.key == pygame.K_ESCAPE:
                     pygame.mixer_music.set_volume(1)
                     return True
-        
+                elif menu_type == 'name':
+                    if evento.key == pygame.K_RETURN:
+                        menu('start', b_n=2)
+                    elif evento.key == pygame.K_BACKSPACE:
+                        nickname = nickname[:-1]  # Remove última letra
+                    else:
+                        # Apenas adiciona se for caracter imprimível
+                        if len(nickname) < 20:
+                            nickname += evento.unicode
+    
+        if menu_type == 'name':
+            texto = font_menu.render(f"I am {nickname}", True, white)
+
+            screen.blit(texto, (aspect_ratio[0]//2 - texto.get_width()//2, aspect_ratio[1]//2))
         pygame.display.update()
         clock.tick(60)
 
 
 def game():
+    inicializarBancoDeDados()
     rocket_cooldown = 2000
     last_rocket_time = 0
     air_resistance = 16
@@ -266,6 +299,8 @@ def game():
     iron_height = spr_iron_soaring.get_height()
     iron_vida = 3
     run_time = pygame.time.get_ticks()
+    base_score = 100
+    tempo_teorico_minimo = 23
     tocar_musica(musicas[1])
     while True:
         current_time = pygame.time.get_ticks()
@@ -327,7 +362,10 @@ def game():
                     iron_vida -= 1
                     #snd_explosion.play()
                 if iron_vida <= 0:
-                    iron_vida = 3
+                    score = base_score * (iron_vida / 3) * (tempo_teorico_minimo / run_timer)
+                    escreverDados(nome, score)
+                    iron_vida = 3        
+
                     thanos.morrer
                     dead()
 
@@ -358,13 +396,16 @@ def dead():
     screen.fill(white)
     screen.blit(spr_dead, (0,0) )
     # Adiciona o log das partidas no Listbox
-    '''log_partidas = open("base.atitus", "r").read()
+    log_partidas = open("base.atitus", "r").read()
     log_partidas = json.loads(log_partidas)
     for chave in log_partidas:
-        listbox.insert(tk.END, f"Pontos: {log_partidas[chave][0]} na data: {log_partidas[chave][1]} - Nickname: {chave}")  # Adiciona cada linha no Listbox
-    
-    root.mainloop()'''
+        print(f"Pontos: {log_partidas[chave][0]} na data: {log_partidas[chave][1]} - Nickname: {chave}")
+    while True:
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                menu('death', b_n=2)
 
-    menu('death', b_n=2)
-
-menu('start', b_n=2)
+menu('name', b_n=0)

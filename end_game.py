@@ -35,5 +35,4 @@ def end_game():
         clock.tick(fps)
 
     cap.release()
-    pygame.quit()
     sys.exit()

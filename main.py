@@ -26,7 +26,8 @@ spr_near = pygame.image.load("assets/background/near.png")
 spr_dead = pygame.image.load("assets/iron_dead.jpeg")
 spr_than = pygame.image.load("assets/.gifs/than.gif")
 spr_head = pygame.image.load("assets/iron_head.png")
-snd_explosion = pygame.mixer.Sound("assets/sounds/explosao.wav")
+snd_explosion = pygame.mixer.Sound("assets/sounds/explosion_rocket.mp3")
+snd_rock = pygame.mixer.Sound("assets/sounds/rock_sound.mp3")
 font_title = pygame.font.Font("assets/texts/Ethnocentric Rg.otf", 50)
 font_menu = pygame.font.Font("assets/texts/Ethnocentric Rg.otf",18)
 font_dead = pygame.font.SysFont("arial",120)    
@@ -370,7 +371,8 @@ def game():
                         move_x  = 0
                         move_y  = 0
                         spr_iron = spr_iron_soaring
-                    #snd_explosion.play()
+                        menu('start', b_n=2)
+                    snd_explosion.play()
             
         for rock in rocks:
             if colisao_retangulos(
@@ -380,7 +382,7 @@ def game():
                 if not rock.exploding:
                     rock.explodir()
                     iron_vida -= 1
-                    #snd_explosion.play()
+                    snd_rock.play()
                 if iron_vida <= 0:
                     score = base_score * (iron_vida / 3) * (tempo_teorico_minimo / run_timer)
                     escreverDados(nome, score)
@@ -418,7 +420,7 @@ def dead():
     screen.blit(spr_dead, (0,0) )
     
     data_base()
-    
+    spr_head
     while True:
         
         for event in pygame.event.get():

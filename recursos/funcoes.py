@@ -203,3 +203,4 @@ class Rocket(pygame.sprite.Sprite):
         self.state = "explode"
         self.animation_index = 0
         self.animation_timer = 0
+        

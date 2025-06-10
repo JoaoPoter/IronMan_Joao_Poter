@@ -3,6 +3,7 @@ from recursos.funcoes import inicializarBancoDeDados, escreverDados, colisao_ret
 from thanos import Boss
 import speech_recognition as sr
 from rapidfuzz import fuzz
+from end_game import end_game
 
 pygame.init()
 pygame.mixer.init()
@@ -71,6 +72,29 @@ rocks = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
 thanos = Boss(than_x, than_y, all_sprites, rocks)
 all_sprites.add(thanos)
+
+def data_base():    
+    log_partidas = open("base.atitus", "r").read()
+    log_partidas = json.loads(log_partidas)
+    for chave in log_partidas:
+        print(f"Pontos: {log_partidas[chave][0]} na data: {log_partidas[chave][1]} - Nickname: {chave}")
+
+def resetar_jogo():
+    global all_sprites, rocks, projectiles, thanos
+    global run_time, start, nome, than_x, than_y
+    
+    start = 0
+    than_x, than_y = 750, 250
+
+    all_sprites.empty()
+    rocks.empty()
+    projectiles.empty()
+    
+    thanos = Boss(than_x, than_y, all_sprites, rocks)
+    all_sprites.add(thanos)
+
+    pygame.mixer.music.stop()
+    tocar_musica(musicas[0])
 
 def tocar_musica(index):
     pygame.mixer_music.fadeout(100)
@@ -332,6 +356,20 @@ def game():
                 if not proj.exploding:
                     proj.explodir()
                     thanos.tomar_dano()
+                    if thanos.hp <= 0:
+                        data_base()
+                        resetar_jogo()
+                        end_game()
+                        run_time = pygame.time.get_ticks()
+                        run_timer = 0
+                        x_far = 0
+                        x_middle = 0
+                        x_near = 0
+                        iron_x = 100    
+                        iron_y = 300
+                        move_x  = 0
+                        move_y  = 0
+                        spr_iron = spr_iron_soaring
                     #snd_explosion.play()
             
         for rock in rocks:
@@ -350,6 +388,7 @@ def game():
 
                     thanos.morrer
                     dead()
+                    resetar_jogo()
 
         if debug_mode:
             debug_lines = [
@@ -377,11 +416,9 @@ def game():
 def dead():
     screen.fill(white)
     screen.blit(spr_dead, (0,0) )
-    # Adiciona o log das partidas no Listbox
-    log_partidas = open("base.atitus", "r").read()
-    log_partidas = json.loads(log_partidas)
-    for chave in log_partidas:
-        print(f"Pontos: {log_partidas[chave][0]} na data: {log_partidas[chave][1]} - Nickname: {chave}")
+    
+    data_base()
+    
     while True:
         
         for event in pygame.event.get():

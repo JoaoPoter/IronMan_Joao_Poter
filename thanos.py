@@ -80,7 +80,3 @@ class Boss(pygame.sprite.Sprite):
     def tomar_dano(self):
         self.hp -= 1
         self.state = "damage"
-
-        if self.hp <= 0:
-            pygame.mixer_music.stop
-            end_game()

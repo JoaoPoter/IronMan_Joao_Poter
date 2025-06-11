@@ -1,4 +1,4 @@
-import pygame, json, math, random, pyttsx3
+import pygame, json, math, random#, pyttsx3
 from recursos.funcoes import inicializarBancoDeDados, escreverDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from thanos import Boss
 import speech_recognition as sr
@@ -11,11 +11,11 @@ inicializarBancoDeDados()
 aspect_ratio = (1200, 740)
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode(aspect_ratio)
-engine = pyttsx3.init()
-voices = engine.getProperty('voices')
+#engine = pyttsx3.init()
+#voices = engine.getProperty('voices')
 
-engine.setProperty('voice', voices[1].id)       
-engine.setProperty('rate', 130)
+#engine.setProperty('voice', voices[1].id)       
+#engine.setProperty('rate', 130)
 
 pygame.display.set_caption("Iron Man do J_Poter")
 icon  = pygame.image.load("assets/icone.png")
@@ -64,13 +64,14 @@ spr_iron_bg = pygame.transform.scale(spr_iron_bg, (aspect_ratio[0], aspect_ratio
 spr_i_am = pygame.transform.scale(spr_i_am, (aspect_ratio[0], aspect_ratio[1]))
 spr_dead = pygame.transform.scale(spr_dead, (aspect_ratio[0], aspect_ratio[1]))
 spr_data = pygame.transform.scale(spr_data, (aspect_ratio[0], aspect_ratio[1]))
-spr_moon = pygame.transform.scale(spr_moon, (100, 100))
-spr_moon_min_scale = 0.8
+spr_moon = pygame.transform.scale(spr_moon, (130, 130))
+spr_moon_min_scale = 0.9
 spr_moon_max_scale = 1.0
 spr_moon_width = spr_moon.get_width()
 spr_moon_height = spr_moon.get_height()
 position_spr_moon_X = 860
-position_spr_moon_Y = 5
+position_spr_moon_Y = 30
+nickname = ""
 
 position_random_animation_X = 800
 position_random_animation_Y = 0
@@ -98,17 +99,33 @@ projectiles = pygame.sprite.Group()
 thanos = Boss(than_x, than_y, all_sprites, rocks)
 all_sprites.add(thanos)
 
-def data_base():
+def resetar_jogo():
+    global all_sprites, rocks, projectiles, thanos
+    global nome, than_x, than_y
     
+    than_x, than_y = 750, 250
+
+    all_sprites.empty()
+    rocks.empty()
+    projectiles.empty()
+    
+    thanos = Boss(than_x, than_y, all_sprites, rocks)
+    all_sprites.add(thanos)
+
+def data_base(score):
+    global nickname
     screen.fill(white)
     screen.blit(spr_data, (0,0) )
+    
+    escreverDados(nome, score)
+    resetar_jogo()
     
     log_partidas = open("base.atitus", "r").read()
     log_partidas = json.loads(log_partidas)
     for chave in log_partidas:
-        print(f"     -      Pontos: {log_partidas[chave][0]}     -      data: {log_partidas[chave][1]}      -       Nickname: {chave}")
+        print(f"     -      Pontos: {log_partidas[chave][0]}     -      data: {log_partidas[chave][1]}      -       Nickname: {nickname}")
         
-        texto = font_menu.render(f" - Pontos: {log_partidas[chave][0]} - Data: {log_partidas[chave][1]} - Nickname: {chave}", True, white)
+        texto = font_menu.render(f" - Pontos: {log_partidas[chave][0]} - Data: {log_partidas[chave][1]} - Nickname: {nickname}", True, white)
         screen.blit(texto, (aspect_ratio[0]//2 - texto.get_width()//2, aspect_ratio[1]// 2 + 250))
         pygame.display.update()
         clock.tick(60)
@@ -121,23 +138,6 @@ def data_base():
                 
         pygame.display.update
         clock.tick(60)
-
-def resetar_jogo():
-    global all_sprites, rocks, projectiles, thanos
-    global start, nome, than_x, than_y
-    
-    start = 0
-    than_x, than_y = 750, 250
-
-    all_sprites.empty()
-    rocks.empty()
-    projectiles.empty()
-    
-    thanos = Boss(than_x, than_y, all_sprites, rocks)
-    all_sprites.add(thanos)
-
-    pygame.mixer.music.stop()
-    tocar_musica(musicas[0])
 
 def tocar_musica(index):
     pygame.mixer_music.fadeout(100)
@@ -153,9 +153,9 @@ def draw_button(screen, image, text, font, pos, button_aspect_ratio, offset, bor
     return b_rect
 
 def menu(menu_type, b_n):
+    global nickname
     font_tutorial = pygame.font.Font("assets/texts/cour.ttf", 30)
     clock = pygame.time.Clock()
-    nickname = ""
 
     # Texto e cores
     text = (
@@ -258,13 +258,13 @@ def menu(menu_type, b_n):
                 if menu_type == 'name':
                     if len(nickname) > 0:
                         menu('start', b_n=2)
-                    else:
-                        engine.say("Insert your name")
-                        engine.runAndWait()
+                    #else:
+                        #engine.say("Insert your name")
+                        #engine.runAndWait()
                 elif buttons[0].collidepoint(evento.pos):
-                    if menu_type in ('start', 'death'):
-                        if menu_type == 'death':
-                            data_base()
+                    if menu_type == 'death':
+                        return
+                    elif menu_type == 'start':
                         type = pygame.mixer.Sound(musicas[3])
                         type.set_volume(0.5)
                         bg_color = (0, 0, 0)
@@ -409,9 +409,15 @@ def game():
         iron_x, iron_y, iron_width, iron_height,
         thanos_rect.x, thanos_rect.y, thanos_rect.width, thanos_rect.height
         ):
-            dead()
+            iron_vida -= 1
+            if iron_vida <= 0:
+                iron_vida = 3        
 
-        spr_moon_scale += scale_direction
+                thanos.morrer
+                dead()
+                data_base(score)
+
+        spr_moon_scale += scale_direction * 0.4
         if spr_moon_scale <= spr_moon_min_scale or spr_moon_scale >= spr_moon_max_scale:
             scale_direction *= -1
 
@@ -440,8 +446,7 @@ def game():
                     if thanos.hp <= 0:
                         
                         end_game()
-                        escreverDados(nome, score)
-                        data_base()
+                        data_base(score)
                     snd_explosion.play()
             
         for rock in rocks:
@@ -454,11 +459,11 @@ def game():
                     iron_vida -= 1
                     snd_rock.play()
                 if iron_vida <= 0:
-                    escreverDados(nome, score)
                     iron_vida = 3        
 
                     thanos.morrer
                     dead()
+                    data_base(score)
 
         if debug_mode:
             debug_lines = [
@@ -491,9 +496,7 @@ def game():
             dy = (distance_y / distance) * speed
 
             meteore_img = pygame.transform.scale(random_animation, (100, 100)).convert_alpha()
-            meteore_img.set_alpha(9
-                                  
-                                  )
+            meteore_img.set_alpha(90)
 
             meteore_random.append({
                 'x': start_x,
@@ -502,6 +505,7 @@ def game():
                 'dy': dy,
                 'image': meteore_img
             })
+            snd_meteore.set_volume(0.3)
             pygame.mixer.Sound.play(snd_meteore)
             meteore_time = current_time + random.randint(2000, 7000)
 

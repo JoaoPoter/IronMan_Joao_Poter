@@ -40,4 +40,5 @@ def end_game():
         window.blit(frame_surface, (0, 0))
         pygame.display.update()
         clock.tick(fps)
+    pygame.mixer_music.fadeout(500)
     return

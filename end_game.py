@@ -1,7 +1,6 @@
 import cv2
 import pygame
 import sys
-import time
 
 def end_game():
     now = pygame.time.get_ticks()
@@ -27,10 +26,9 @@ def end_game():
         frame = cv2.resize(frame, (1200, 740))
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_surface = pygame.surfarray.make_surface(frame.swapaxes(0, 1))
-        
         now = pygame.time.get_ticks()
+
         for event in pygame.event.get():
-            
             now == pygame.time.get_ticks()
             if event.type == pygame.QUIT:
                 quit()
@@ -38,7 +36,6 @@ def end_game():
                 if now - before_video >= 1500:
                     pygame.mixer_music.fadeout
                     running = False
-            
 
         window.blit(frame_surface, (0, 0))
         pygame.display.update()

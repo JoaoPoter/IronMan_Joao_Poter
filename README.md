@@ -31,11 +31,11 @@ cv2 (OpenCV) — reprodução e manipulação de vídeos.
 
 sys — interação com o sistema e gerenciamento de execução.
 
-PIL (Image, ImageSequence da biblioteca Pillow) — conversão de GIFs em imagens.
-
-Obs.: Necessário apenas se a pasta assets não estiver corretamente configurada.
+PIL (Image, ImageSequence da biblioteca Pillow) — conversão de GIFs em imagens. Obs.: Necessário apenas na criação dos frames para a pasta assets.
 
 cx_Freeze — empacotamento do jogo para distribuição.
+
+pyttsx3 - biblioteca text to speech.
 
 🎮 Créditos
 Inspirado na versão original criada pelo Marcão na Atitus.

@@ -7,6 +7,10 @@ João Vitor Pereira Poter
 
 RA: 1138018
 
+👾 Game Tester: Eduardo Barreda Mello 
+
+- RA: 1138704
+
 📖 História do Jogo
 Após os Vingadores se separarem para se prepararem para a batalha final contra Thanos, Tony Stark (o Homem de Ferro) acaba encontrando Thanos, que já possui todas as Joias do Infinito. Assim, se inicia a batalha final entre eles, decidindo o destino do universo.
 

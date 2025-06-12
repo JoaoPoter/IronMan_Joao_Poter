@@ -1,5 +1,5 @@
-import pygame, json, math, random#, pyttsx3
-from recursos.funcoes import inicializarBancoDeDados, escreverDados, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
+import pygame, math, random, pyttsx3
+from recursos.funcoes import inicializarBancoDeDados, save_game_log, get_top_scores, colisao_retangulos, backGround, move_horizontal, fade_text, Rocket
 from thanos import Boss
 import speech_recognition as sr
 from rapidfuzz import fuzz
@@ -11,11 +11,11 @@ inicializarBancoDeDados()
 aspect_ratio = (1200, 740)
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode(aspect_ratio)
-#engine = pyttsx3.init()
-#voices = engine.getProperty('voices')
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
 
-#engine.setProperty('voice', voices[1].id)       
-#engine.setProperty('rate', 130)
+engine.setProperty('voice', voices[1].id)       
+engine.setProperty('rate', 130)
 
 pygame.display.set_caption("Iron Man do J_Poter")
 icon  = pygame.image.load("assets/icone.png")
@@ -40,7 +40,7 @@ snd_meteore = pygame.mixer.Sound("assets/sounds/meteore.mp3")
 
 font_title = pygame.font.Font("assets/texts/Ethnocentric Rg.otf", 50)
 font_menu = pygame.font.Font("assets/texts/Ethnocentric Rg.otf",18)
-font_dead = pygame.font.SysFont("arial",120)    
+font_dead = pygame.font.SysFont("arial",30)    
 font_debug = pygame.font.SysFont(None, 16)
 musicas = [
     "assets/sounds/iron_2012.wav",
@@ -117,26 +117,43 @@ def data_base(score):
     screen.fill(white)
     screen.blit(spr_data, (0,0) )
     
-    escreverDados(nome, score)
     resetar_jogo()
+    top_scores = get_top_scores(5)
+    death_text = font_title.render("GAME OVER", True, (255, 10, 0))
+    text_rect = death_text.get_rect(center=(aspect_ratio[0]//2, 100))
+    for offset in [(-1,-1), (1,-1), (-1,1), (1,1)]:
+        screen.blit(font_title.render("GAME OVER", True, black), 
+                    (text_rect.x + offset[0], text_rect.y + offset[1]))
+    screen.blit(death_text, text_rect)
     
-    log_partidas = open("base.atitus", "r").read()
-    log_partidas = json.loads(log_partidas)
-    for chave in log_partidas:
-        print(f"     -      Pontos: {log_partidas[chave][0]}     -      data: {log_partidas[chave][1]}      -       Nickname: {nickname}")
-        
-        texto = font_menu.render(f" - Pontos: {log_partidas[chave][0]} - Data: {log_partidas[chave][1]} - Nickname: {nickname}", True, white)
-        screen.blit(texto, (aspect_ratio[0]//2 - texto.get_width()//2, aspect_ratio[1]// 2 + 250))
-        pygame.display.update()
-        clock.tick(60)
+    score_text = font_dead.render(f"Player: {nickname} - Score: {score}", True, white)
+    screen.blit(score_text, (aspect_ratio[0]//2 - score_text.get_width()//2, 180))
+    
+    rank_title = font_menu.render("TOP 5 SCORES", True, (0, 255, 255))
+    screen.blit(rank_title, (aspect_ratio[0]//2 - rank_title.get_width()//2, 250))
+    
+    for i, game in enumerate(top_scores):
+        name, scr, date, time = game
+        if i == 0:
+            color = (255, 215, 0)
+        elif i == 1:
+            color = white
+        elif i == 2:
+            color = (205, 127, 50)
+        else:
+            color = (192, 192, 192)
+        game_text = font_dead.render(f"{i+1}. {name}: {scr} - {date} {time}", True, color)
+        screen.blit(game_text, (aspect_ratio[0]//2 - game_text.get_width()//2, 310 + i * 35))
+    pygame.display.update()
+    clock.tick(60)
+    
     while True:
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 menu('start', b_n=2)
-                
-        pygame.display.update
         clock.tick(60)
 
 def tocar_musica(index):
@@ -157,7 +174,6 @@ def menu(menu_type, b_n):
     font_tutorial = pygame.font.Font("assets/texts/cour.ttf", 30)
     clock = pygame.time.Clock()
 
-    # Texto e cores
     text = (
     "The Avengers were prepared to attack Thanos, but when Iron Man\n"
     "whas on his way to the battle fild, thanos surprised him\n"
@@ -250,17 +266,13 @@ def menu(menu_type, b_n):
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 quit()
-            elif evento.type == pygame.MOUSEBUTTONDOWN:
-                for b in buttons:
-                    if b.collidepoint(evento.pos):
-                        pass  # Placeholder
             elif evento.type == pygame.MOUSEBUTTONUP:
                 if menu_type == 'name':
                     if len(nickname) > 0:
                         menu('start', b_n=2)
-                    #else:
-                        #engine.say("Insert your name")
-                        #engine.runAndWait()
+                    else:
+                        engine.say("Insert your name")
+                        engine.runAndWait()
                 elif buttons[0].collidepoint(evento.pos):
                     if menu_type == 'death':
                         return
@@ -275,41 +287,15 @@ def menu(menu_type, b_n):
                         type.play(2)
                         tutorial_running = True
                         while tutorial_running:
-                            screen.fill(bg_color)
-                            pygame.mixer_music.set_volume(0.6)
-
-                            for event in pygame.event.get():
-                                if event.type == pygame.QUIT:
-                                    pygame.quit()
-                                elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                                    finished_typing = True
-                                    current_text = text
-                            now = pygame.time.get_ticks()
-                            if now - last_update > type_speed:
-                                if text_index < len(text):
-                                    current_text += text[text_index]
-                                    text_index += 1
-                                    last_update = now
-                                else:
-                                    finished_typing = True
-                                    type.stop()
-                            lines = current_text.split('\n')
-                            y = 100
-                            for line in lines:
-                                rendered_line = font_tutorial.render(line, True, text_color)
-                                screen.blit(rendered_line, (70, y))
-                                y += font_tutorial.get_height() + 5
-                                
-                            pygame.display.flip()
-                            clock.tick(60)
-                            if finished_typing:
+                            while finished_typing:
                                 tutorial_running = False
                                 type.fadeout(10)
-                                game()
                                 print("Reconhecendo...")
                                 type.stop()
+                                print("GGSASD")
                                 with sr.Microphone() as source:
                                     recognizer.adjust_for_ambient_noise(source)
+                                    print("aaaa")
                                     try:
                                         audio = recognizer.listen(source, phrase_time_limit=5)
                                         recognized_text = recognizer.recognize_google(audio)
@@ -318,6 +304,7 @@ def menu(menu_type, b_n):
                                             print("✅ Sucesso! Você é o Homem de Ferro.")
                                             tutorial_running = False
                                             type.fadeout(10)
+                                            finished_typing = False
                                             game()
                                         else:
                                             print("❌ Não foi parecido o bastante. Tente novamente.")
@@ -326,6 +313,39 @@ def menu(menu_type, b_n):
                                         print("❗ Não foi possível entender o áudio.")
                                     except sr.RequestError as e:
                                         print(f"❗ Erro no serviço de reconhecimento: {e}")
+                            else:
+                                screen.fill(bg_color)
+                                pygame.mixer_music.set_volume(0.6)
+
+                                for event in pygame.event.get():
+                                    if event.type == pygame.QUIT:
+                                        pygame.quit()
+                                    elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                                        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                                            tutorial_running = False
+                                            type.fadeout(10)
+                                            game()
+                                        finished_typing = True
+                                        current_text = text
+                                now = pygame.time.get_ticks()
+                                if now - last_update > type_speed:
+                                    if text_index < len(text):
+                                        current_text += text[text_index]
+                                        text_index += 1
+                                        last_update = now
+                                    else:
+                                        finished_typing = True
+                                        type.stop()
+                                lines = current_text.split('\n')
+                                y = 100
+                                for line in lines:
+                                    rendered_line = font_tutorial.render(line, True, text_color)
+                                    screen.blit(rendered_line, (70, y))
+                                    y += font_tutorial.get_height() + 5
+                                    
+                                pygame.display.flip()
+                                clock.tick(60)
+                            
                     else:
                         pygame.mixer_music.set_volume(1)
                         return True
@@ -350,7 +370,6 @@ def menu(menu_type, b_n):
             screen.blit(texto, (aspect_ratio[0]//2 - texto.get_width()//2, aspect_ratio[1]// 2 + 250))
         pygame.display.update()
         clock.tick(60)
-
 
 def game():
     inicializarBancoDeDados()
@@ -414,6 +433,7 @@ def game():
                 iron_vida = 3        
 
                 thanos.morrer
+                pygame.mixer.Sound.stop
                 dead()
                 data_base(score)
 
@@ -445,7 +465,9 @@ def game():
                     thanos.tomar_dano()
                     if thanos.hp <= 0:
                         
+                        pygame.mixer.Sound.stop
                         end_game()
+                        save_game_log(nickname, score)
                         data_base(score)
                     snd_explosion.play()
             
@@ -462,6 +484,7 @@ def game():
                     iron_vida = 3        
 
                     thanos.morrer
+                    pygame.mixer.Sound.stop
                     dead()
                     data_base(score)
 

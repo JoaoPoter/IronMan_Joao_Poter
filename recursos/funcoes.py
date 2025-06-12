@@ -1,5 +1,5 @@
-import os, json, pygame
-from datetime import datetime
+import os, pygame
+import datetime
 
 def inicializarBancoDeDados():
     # r - read, w - write, a - append
@@ -8,23 +8,38 @@ def inicializarBancoDeDados():
     except:
         print("Banco de Dados Inexistente. Criando...")
         banco = open("base.atitus","w")
-    
-def escreverDados(nome, pontos):
-    banco = open("base.atitus","r")
-    dados = banco.read()
-    banco.close()
-    print("dados",type(dados))
-    if dados != "":
-        dadosDict = json.loads(dados)
-    else:
-        dadosDict = {}
-        
-    data_br = datetime.now().strftime("%d/%m/%Y")
-    dadosDict[nome] = (pontos, data_br)
-    
-    banco = open("base.atitus","w")
-    banco.write(json.dumps(dadosDict))
-    banco.close()
+
+def save_game_log(player_name, score):
+    now = datetime.datetime.now()
+    date_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M:%S")
+    with open("log.dat", "a") as file:
+        file.write(f"{player_name},{score},{date_str},{time_str}\n")
+
+
+def get_top_scores(limit=5):
+    try:
+        with open("log.dat", "r") as file:
+            games = []
+            for line in file:
+                if line.strip():
+                    parts = line.strip().split(',')
+                    if len(parts) == 4:
+                        try:
+                            parts[1] = int(parts[1])
+                            games.append(parts)
+                        except ValueError:
+                            continue
+
+            games.sort(key=lambda x: (-x[1], x[2], x[3]))
+
+            for game in games:
+                game[1] = str(game[1])
+
+            return games[:limit] 
+    except Exception as e:
+        print(f"Error reading leaderboard: {e}")
+        return []
     
 def colisao_retangulos(x1, y1, w1, h1, x2, y2, w2, h2):
     return (

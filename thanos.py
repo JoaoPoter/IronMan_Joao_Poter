@@ -2,7 +2,6 @@
 import pygame
 import random
 from recursos.funcoes import Rock, carregar_frames
-from end_game import end_game
 
 class Boss(pygame.sprite.Sprite):
     def __init__(self, x, y, all_sprites, rocks):
